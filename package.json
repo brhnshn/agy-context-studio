@@ -1,0 +1,35 @@
+{
+  "name": "agy-context-studio",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Zero-token-overhead Context Window Monitor & Manager plugin for Google Antigravity.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brhnshn/agy-context-studio.git"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/**/*.test.ts",
+    "build:bundles": "node scripts/build-bundles.mjs",
+    "build:ui": "vite build",
+    "build": "npm run typecheck && npm run build:bundles && npm run build:ui",
+    "link:plugin": "node scripts/link-plugin.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.4.1",
+    "esbuild": "^0.25.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  }
+}

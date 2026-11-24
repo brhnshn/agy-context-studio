@@ -1,0 +1,21 @@
+{
+  "command": "node",
+  "args": ["server.mjs"],
+  "restart_policy": "always",
+  "display_name": "Context Studio",
+  "description": "Zero-token-overhead live context window monitor, prompt cache diagnostics, and handoff manager.",
+  "has_web_ui": true,
+  "agent_permissions": {
+    "allows_user_interactions": true
+  },
+  "ui_config": {
+    "display_name": "Context Studio",
+    "views": [
+      {
+        "path": "/",
+        "entrypoint": "SIDECAR_UI_ENTRYPOINT_AUX_PANE",
+        "title": "Context Studio"
+      }
+    ]
+  }
+}

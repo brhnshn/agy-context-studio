@@ -1,0 +1,26 @@
+{
+  "name": "agy-context-studio",
+  "displayName": "Context Studio",
+  "description": "Zero-token-overhead live context window monitor, prompt cache diagnostics, threshold alerts, and handoff manager for Google Antigravity.",
+  "logo": "assets/logo.svg",
+  "suggestedPrompts": [
+    "Summarize my current progress and produce a compact handoff prompt for a fresh session.",
+    "Identify which files or tool outputs are taking the most space in our current workflow."
+  ],
+  "author": {
+    "name": "Burhan Sahin",
+    "url": "https://github.com/brhnshn"
+  },
+  "homepage": "https://github.com/brhnshn/agy-context-studio",
+  "repository": "https://github.com/brhnshn/agy-context-studio",
+  "license": "MIT",
+  "keywords": [
+    "context-window",
+    "tokens",
+    "prompt-cache",
+    "monitoring",
+    "sidecar",
+    "antigravity"
+  ],
+  "version": "0.1.0"
+}

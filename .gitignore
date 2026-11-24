@@ -1,0 +1,25 @@
+# Dependencies & build caches
+node_modules/
+.vite/
+coverage/
+dist/
+*.tsbuildinfo
+
+# Logs & OS junk
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Environment & temp files
+.env
+.env.*
+.tmp/
+*.tmp
+
+# Note: Built zero-dependency plugin runtime outputs committed intentionally
+# so `agy plugin install` works without requiring `npm install` or build steps:
+#   - sidecars/agy-context-studio/server.mjs
+#   - sidecars/agy-context-studio/public/
+#   - hooks/post-invocation.mjs
+#   - mcp/server.mjs (opt-in MCP module)

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "agy-context-studio": {
+      "command": "node",
+      "args": ["mcp/server.mjs"]
+    }
+  }
+}

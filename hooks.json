@@ -1,0 +1,11 @@
+{
+  "context-studio-threshold": {
+    "PostInvocation": [
+      {
+        "type": "command",
+        "command": "node hooks/post-invocation.mjs",
+        "timeout": 10
+      }
+    ]
+  }
+}

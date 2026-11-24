@@ -37,32 +37,49 @@ async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
 
 export function fetchState(conversationId?: string | null): Promise<ContextSnapshot> {
   const query = conversationId ? `?conversationId=${encodeURIComponent(conversationId)}` : '';
-  return requestJson<ContextSnapshot>(`./api/state${query}`);
+  return requestJson<ContextSnapshot>(`/api/state${query}`);
 }
 
 export async function fetchConversations(): Promise<ConversationListItem[]> {
-  const payload = await requestJson<{ conversations?: ConversationListItem[] }>('./api/conversations');
+  const payload = await requestJson<{ conversations?: ConversationListItem[] }>('/api/conversations');
   return Array.isArray(payload.conversations) ? payload.conversations : [];
 }
 
 export async function fetchModels(): Promise<ModelOptionItem[]> {
-  const payload = await requestJson<{ models?: ModelOptionItem[] }>('./api/models');
+  const payload = await requestJson<{ models?: ModelOptionItem[] }>('/api/models');
   return Array.isArray(payload.models) ? payload.models : [];
 }
 
 export function fetchHistory(days = 7): Promise<UsageHistory> {
-  return requestJson<UsageHistory>(`./api/history?days=${encodeURIComponent(String(days))}`);
+  return requestJson<UsageHistory>(`/api/history?days=${encodeURIComponent(String(days))}`);
 }
 
 export function fetchSettings(): Promise<PluginConfig> {
-  return requestJson<PluginConfig>('./api/settings');
+  return requestJson<PluginConfig>('/api/settings');
 }
 
 export function updateSettings(partial: Partial<PluginConfig>): Promise<PluginConfig> {
-  return requestJson<PluginConfig>('./api/settings', {
+  return requestJson<PluginConfig>('/api/settings', {
     method: 'PUT',
     body: JSON.stringify(partial)
   });
+}
+
+function buildEventsUrl(conversationId: string | null): string {
+  const params = new URLSearchParams();
+  if (conversationId) {
+    params.set('conversationId', conversationId);
+  }
+  try {
+    const token = new URLSearchParams(window.location.search).get('token');
+    if (token) {
+      params.set('token', token);
+    }
+  } catch {
+    // Ignore invalid location
+  }
+  const qs = params.toString();
+  return qs ? `/api/events?${qs}` : '/api/events';
 }
 
 export function subscribeToState(
@@ -77,8 +94,7 @@ export function subscribeToState(
     if (disposed || document.visibilityState === 'hidden') {
       return;
     }
-    const query = conversationId ? `?conversationId=${encodeURIComponent(conversationId)}` : '';
-    source = new EventSource(`./api/events${query}`);
+    source = new EventSource(buildEventsUrl(conversationId));
 
     source.addEventListener('open', () => {
       onStatusChange?.(true);

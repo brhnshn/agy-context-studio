@@ -1001,13 +1001,30 @@ var MIME_TYPES = {
   ".png": "image/png",
   ".ico": "image/x-icon"
 };
+var CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, X-Sidecar-Token"
+};
 function sendJson(res, statusCode, body) {
   const payload = JSON.stringify(body);
   res.writeHead(statusCode, {
     "Content-Type": "application/json; charset=utf-8",
-    "Cache-Control": "no-store"
+    "Cache-Control": "no-store",
+    ...CORS_HEADERS
   });
   res.end(payload);
+}
+async function execAgentApi(args, projectId) {
+  const exe = process.env.ANTIGRAVITY_AGENTAPI_EXE;
+  const file = exe || "agentapi";
+  const execArgs = exe ? ["agentapi", ...args] : args;
+  const env = { ...process.env };
+  if (projectId && projectId.trim()) {
+    env.ANTIGRAVITY_PROJECT_ID = projectId.trim();
+  }
+  const { stdout } = await execFileAsync(file, execArgs, { env });
+  return stdout.trim() ? JSON.parse(stdout) : { ok: true };
 }
 async function readJsonBody(req) {
   const chunks = [];
@@ -1089,11 +1106,12 @@ async function serveStaticAsset(res, publicDir, pathname) {
     const ext = path4.extname(targetPath).toLowerCase();
     res.writeHead(200, {
       "Content-Type": MIME_TYPES[ext] ?? "application/octet-stream",
-      "Cache-Control": ext === ".html" ? "no-store, no-cache, must-revalidate" : "public, max-age=300"
+      "Cache-Control": ext === ".html" ? "no-store, no-cache, must-revalidate" : "public, max-age=300",
+      ...CORS_HEADERS
     });
     res.end(content);
   } catch {
-    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", ...CORS_HEADERS });
     res.end("<!doctype html><html><body><p>Context Studio UI bundle not built yet.</p></body></html>");
   }
 }
@@ -1101,6 +1119,11 @@ async function handleSidecarRequest(req, res, ctx) {
   const method = (req.method ?? "GET").toUpperCase();
   const url = new URL(req.url ?? "/", "http://127.0.0.1");
   const pathname = url.pathname;
+  if (method === "OPTIONS") {
+    res.writeHead(204, CORS_HEADERS);
+    res.end();
+    return;
+  }
   if (method !== "GET" && !isAuthorizedSidecarRequest(req, url)) {
     sendJson(res, 401, { error: "unauthorized" });
     return;
@@ -1109,9 +1132,27 @@ async function handleSidecarRequest(req, res, ctx) {
     const preloadScript = await resolvePreloadJs(ctx.antigravityHome);
     res.writeHead(200, {
       "Content-Type": "application/javascript; charset=utf-8",
-      "Cache-Control": "no-store"
+      "Cache-Control": "no-store",
+      ...CORS_HEADERS
     });
     res.end(preloadScript);
+    return;
+  }
+  if (method === "POST" && pathname === "/_sidecar/get-conversation-metadata") {
+    try {
+      const body = await readJsonBody(req);
+      const conversationId = typeof body.conversationId === "string" && body.conversationId.trim().length > 0 ? body.conversationId.trim() : await resolveTargetConversationId(null, ctx.antigravityHome) ?? "";
+      if (!conversationId) {
+        sendJson(res, 400, { error: "conversationId is required" });
+        return;
+      }
+      const parsed = await execAgentApi(["get-conversation-metadata", conversationId]);
+      sendJson(res, 200, parsed);
+    } catch (error) {
+      sendJson(res, 500, {
+        error: error instanceof Error ? error.message : "Failed to fetch conversation metadata via agentapi"
+      });
+    }
     return;
   }
   if (method === "POST" && pathname === "/_sidecar/send-message") {
@@ -1123,20 +1164,13 @@ async function handleSidecarRequest(req, res, ctx) {
         sendJson(res, 400, { error: "conversationId and message are required" });
         return;
       }
-      const exe = process.env.ANTIGRAVITY_AGENTAPI_EXE;
-      const file = exe || "agentapi";
       const args = ["send-message"];
       if (typeof body.title === "string" && body.title.trim()) {
         args.push("--title", body.title.trim());
       }
       args.push(conversationId, message);
-      const execArgs = exe ? ["agentapi", ...args] : args;
-      const env = { ...process.env };
-      if (typeof body.projectId === "string" && body.projectId.trim()) {
-        env.ANTIGRAVITY_PROJECT_ID = body.projectId.trim();
-      }
-      const { stdout } = await execFileAsync(file, execArgs, { env });
-      const parsed = stdout.trim() ? JSON.parse(stdout) : { ok: true };
+      const projectId = typeof body.projectId === "string" ? body.projectId : void 0;
+      const parsed = await execAgentApi(args, projectId);
       sendJson(res, 200, parsed);
     } catch (error) {
       sendJson(res, 500, {
@@ -1234,7 +1268,8 @@ async function handleSidecarRequest(req, res, ctx) {
       "Content-Type": "text/event-stream; charset=utf-8",
       "Cache-Control": "no-cache, no-transform",
       Connection: "keep-alive",
-      "X-Accel-Buffering": "no"
+      "X-Accel-Buffering": "no",
+      ...CORS_HEADERS
     });
     res.flushHeaders?.();
     if (!conversationId) {

@@ -5,11 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
     <title>Context Studio</title>
-    <script type="module" crossorigin src="./assets/index-RVQRYFtF.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-DhdWbUqY.css">
+    <script src="/preload.js"></script>
+    <link rel="stylesheet" href="/assets/app.css">
   </head>
   <body>
-    <div id="root"></div>
-    <script src="./preload.js"></script>
+    <div id="root">
+      <div style="padding:16px;font-family:system-ui,sans-serif;font-size:13px;opacity:0.7">Loading Context Studio…</div>
+    </div>
+    <script>
+      (function () {
+        function showBootError(label, detail) {
+          if (window.__CS_MOUNTED__) return;
+          var root = document.getElementById('root');
+          if (!root) return;
+          root.textContent = '';
+          var box = document.createElement('div');
+          box.style.cssText = 'padding:16px;font-family:system-ui,sans-serif;font-size:13px;line-height:1.5';
+          var title = document.createElement('strong');
+          title.textContent = label;
+          box.appendChild(title);
+          if (detail) {
+            var pre = document.createElement('pre');
+            pre.style.cssText = 'margin:8px 0 0;white-space:pre-wrap;opacity:0.8;font-size:12px';
+            pre.textContent = String(detail);
+            box.appendChild(pre);
+          }
+          root.appendChild(box);
+        }
+        window.addEventListener('error', function (event) {
+          showBootError('Context Studio failed to initialize.', event && (event.message || (event.error && event.error.message)));
+        });
+        window.addEventListener('unhandledrejection', function (event) {
+          var reason = event && event.reason;
+          showBootError('Context Studio encountered a startup error.', reason && reason.message ? reason.message : reason);
+        });
+      })();
+    </script>
+      <script src="/assets/app.js"></script>
   </body>
 </html>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { ContextSnapshot, PluginConfig, UsageHistory } from '../core/types.js';
+import type { ContextSnapshot, LanguageCode, PluginConfig, UsageHistory } from '../core/types.js';
 import { ActionsBar } from './components/ActionsBar.js';
 import { BreakdownCard } from './components/BreakdownCard.js';
 import { ContextMeterCard } from './components/ContextMeterCard.js';
@@ -18,6 +18,7 @@ import {
   updateSettings
 } from './services/apiClient.js';
 import { getHostConversationId } from './services/sidecarBridge.js';
+import { GaugeIcon, HistoryIcon, SettingsIcon, UsersIcon } from './utils/icons.js';
 
 type ActiveTab = 'overview' | 'subagents' | 'history' | 'settings';
 
@@ -41,6 +42,7 @@ export function App() {
   const [isHidden, setIsHidden] = useState(() => document.visibilityState === 'hidden');
 
   const t = getTranslations(config.language);
+  const subagents = snapshot?.subagents ?? [];
 
   const loadSnapshotAndLists = useCallback(async (convId: string) => {
     const [nextSnapshot, nextConvs] = await Promise.all([
@@ -115,9 +117,10 @@ export function App() {
     await loadSnapshotAndLists(selectedConvId);
   };
 
-  const handleToggleLanguage = () => {
-    const nextLang = config.language === 'en' ? 'tr' : 'en';
-    void handleSaveConfig({ language: nextLang });
+  const handleSetLanguage = (nextLang: LanguageCode) => {
+    if (nextLang !== config.language) {
+      void handleSaveConfig({ language: nextLang });
+    }
   };
 
   return (
@@ -130,7 +133,7 @@ export function App() {
         connected={connected}
         isHidden={isHidden}
         onSelectConversation={(id) => setSelectedConvId(id)}
-        onToggleLanguage={handleToggleLanguage}
+        onSetLanguage={handleSetLanguage}
         onRefresh={() => void loadSnapshotAndLists(selectedConvId)}
       />
 
@@ -142,6 +145,7 @@ export function App() {
           className={`cs-tab ${tab === 'overview' ? 'cs-tab-active' : ''}`}
           onClick={() => setTab('overview')}
         >
+          <GaugeIcon />
           {t.tabs.overview}
         </button>
         <button
@@ -151,7 +155,9 @@ export function App() {
           className={`cs-tab ${tab === 'subagents' ? 'cs-tab-active' : ''}`}
           onClick={() => setTab('subagents')}
         >
+          <UsersIcon />
           {t.tabs.subagents}
+          {subagents.length > 0 && <span className="cs-tab-count">{subagents.length}</span>}
         </button>
         <button
           type="button"
@@ -160,6 +166,7 @@ export function App() {
           className={`cs-tab ${tab === 'history' ? 'cs-tab-active' : ''}`}
           onClick={() => setTab('history')}
         >
+          <HistoryIcon />
           {t.tabs.history}
         </button>
         <button
@@ -169,23 +176,30 @@ export function App() {
           className={`cs-tab ${tab === 'settings' ? 'cs-tab-active' : ''}`}
           onClick={() => setTab('settings')}
         >
+          <SettingsIcon />
           {t.tabs.settings}
         </button>
       </nav>
 
       {tab === 'overview' && (
-        <>
+        <div className="cs-panel">
           <ContextMeterCard t={t} snapshot={snapshot} config={config} />
           <BreakdownCard t={t} snapshot={snapshot} />
           <ActionsBar t={t} language={config.language} snapshot={snapshot} />
-        </>
+        </div>
       )}
 
       {tab === 'subagents' && (
-        <SubagentsTab t={t} subagents={snapshot?.subagents ?? []} />
+        <div className="cs-panel">
+          <SubagentsTab t={t} subagents={subagents} />
+        </div>
       )}
 
-      {tab === 'history' && <HistoryTab t={t} history={history} loading={historyLoading} />}
+      {tab === 'history' && (
+        <div className="cs-panel">
+          <HistoryTab t={t} history={history} loading={historyLoading} />
+        </div>
+      )}
 
       {tab === 'settings' && (
         <SettingsTab t={t} config={config} onSaveConfig={handleSaveConfig} />

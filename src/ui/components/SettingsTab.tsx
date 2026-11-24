@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { LanguageCode, ModelOverride, PluginConfig } from '../../core/types.js';
 import type { TranslationDict } from '../i18n/en.js';
 import { copyText } from '../services/sidecarBridge.js';
-import { CopyIcon, SettingsIcon } from '../utils/icons.js';
+import { CheckIcon, CopyIcon, SettingsIcon } from '../utils/icons.js';
 
 interface SettingsTabProps {
   t: TranslationDict;
@@ -95,14 +95,19 @@ export function SettingsTab({ t, config, onSaveConfig }: SettingsTabProps) {
   const overrideEntries = Object.entries(overrides);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+    <div className="cs-panel">
       <section className="cs-card">
         <div className="cs-card-head">
           <span className="cs-card-title">
             <SettingsIcon />
             {t.settings.title}
           </span>
-          {statusMsg && <span className="cs-feedback">{statusMsg}</span>}
+          {statusMsg && (
+            <span className="cs-feedback">
+              <CheckIcon />
+              {statusMsg}
+            </span>
+          )}
         </div>
 
         <div className="cs-form-row">
@@ -120,12 +125,15 @@ export function SettingsTab({ t, config, onSaveConfig }: SettingsTabProps) {
 
         <div className="cs-form-row">
           <label htmlFor="cs-hook-toggle">{t.settings.hookEnabled}</label>
-          <input
-            id="cs-hook-toggle"
-            type="checkbox"
-            checked={hookEnabled}
-            onChange={(e) => setHookEnabled(e.target.checked)}
-          />
+          <label className="cs-switch">
+            <input
+              id="cs-hook-toggle"
+              type="checkbox"
+              checked={hookEnabled}
+              onChange={(e) => setHookEnabled(e.target.checked)}
+            />
+            <span className="cs-switch-track" />
+          </label>
         </div>
 
         <div className="cs-form-row">
@@ -185,7 +193,7 @@ export function SettingsTab({ t, config, onSaveConfig }: SettingsTabProps) {
           <input
             type="number"
             className="cs-input"
-            style={{ width: '120px' }}
+            style={{ width: '130px' }}
             placeholder={t.settings.contextLimit}
             value={newLimit}
             onChange={(e) => setNewLimit(e.target.value)}

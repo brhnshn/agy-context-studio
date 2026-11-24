@@ -7,7 +7,7 @@ import {
   buildMarkdownReport,
   buildSmartHandoffPrompt
 } from '../utils/format.js';
-import { CopyIcon, SendIcon } from '../utils/icons.js';
+import { CheckIcon, CopyIcon, SendIcon } from '../utils/icons.js';
 
 interface ActionsBarProps {
   t: TranslationDict;
@@ -44,7 +44,12 @@ export function ActionsBar({ t, language, snapshot }: ActionsBarProps) {
     <section className="cs-card">
       <div className="cs-card-head">
         <span className="cs-card-title">{t.actions.title}</span>
-        {feedback && <span className="cs-feedback">{feedback}</span>}
+        {feedback && (
+          <span className="cs-feedback">
+            <CheckIcon />
+            {feedback}
+          </span>
+        )}
       </div>
       <div className="cs-actions">
         <button

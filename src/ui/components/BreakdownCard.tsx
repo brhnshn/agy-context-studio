@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { CategoryKey, ContextSnapshot } from '../../core/types.js';
 import type { TranslationDict } from '../i18n/en.js';
 import { formatBytes, formatTokens } from '../utils/format.js';
@@ -17,8 +18,12 @@ const CATEGORY_COLORS: Record<CategoryKey, string> = {
 };
 
 export function BreakdownCard({ t, snapshot }: BreakdownCardProps) {
+  const [selectedCategory, setSelectedCategory] = useState<CategoryKey | null>(null);
   const categories = snapshot?.breakdown.categories ?? [];
-  const bloaters = snapshot?.topBloaters ?? [];
+  const allBloaters = snapshot?.topBloaters ?? [];
+  const visibleBloaters = selectedCategory
+    ? allBloaters.filter((item) => item.category === selectedCategory)
+    : allBloaters;
   const hasBytes = (snapshot?.breakdown.totalBytes ?? 0) > 0;
 
   return (
@@ -38,37 +43,57 @@ export function BreakdownCard({ t, snapshot }: BreakdownCardProps) {
               .map((slice) => (
                 <div
                   key={slice.category}
+                  className="cs-stack-segment"
                   style={{
                     width: `${slice.sharePct}%`,
-                    backgroundColor: CATEGORY_COLORS[slice.category]
+                    backgroundColor: CATEGORY_COLORS[slice.category],
+                    opacity: selectedCategory && selectedCategory !== slice.category ? 0.28 : 1
                   }}
                   title={`${t.breakdown.categories[slice.category]}: ~${formatTokens(slice.estimatedTokens)} (${slice.sharePct.toFixed(1)}%)`}
                 />
               ))}
           </div>
           <div className="cs-legend">
-            {categories.map((slice) => (
-              <span key={slice.category} className="cs-legend-item">
-                <span className="cs-dot" style={{ backgroundColor: CATEGORY_COLORS[slice.category] }} />
-                <span>{t.breakdown.categories[slice.category]}:</span>
-                <span>~{formatTokens(slice.estimatedTokens)}</span>
-                <span>({slice.sharePct.toFixed(1)}%)</span>
-              </span>
-            ))}
+            {categories.map((slice) => {
+              const isSelected = selectedCategory === slice.category;
+              return (
+                <button
+                  key={slice.category}
+                  type="button"
+                  className={`cs-pill-filter ${isSelected ? 'is-selected' : ''}`}
+                  aria-pressed={isSelected}
+                  onClick={() =>
+                    setSelectedCategory((prev) => (prev === slice.category ? null : slice.category))
+                  }
+                >
+                  <span className="cs-dot" style={{ backgroundColor: CATEGORY_COLORS[slice.category] }} />
+                  <span>{t.breakdown.categories[slice.category]}</span>
+                  <span>~{formatTokens(slice.estimatedTokens)}</span>
+                  <span>({slice.sharePct.toFixed(1)}%)</span>
+                </button>
+              );
+            })}
           </div>
         </>
       ) : (
         <div className="cs-empty">{t.breakdown.noSteps}</div>
       )}
 
-      {bloaters.length > 0 && (
+      {visibleBloaters.length > 0 && (
         <>
-          <div className="cs-card-title" style={{ marginTop: '4px' }}>
+          <div className="cs-card-title" style={{ marginTop: '2px' }}>
             {t.breakdown.bloatersTitle}
           </div>
           <div className="cs-list">
-            {bloaters.slice(0, 6).map((item) => (
+            {visibleBloaters.slice(0, 6).map((item) => (
               <div key={`${item.stepIndex}-${item.category}-${item.label}`} className="cs-list-row">
+                <div
+                  className="cs-list-bar"
+                  style={{
+                    width: `${Math.min(100, Math.max(4, item.sharePct))}%`,
+                    backgroundColor: CATEGORY_COLORS[item.category]
+                  }}
+                />
                 <div className="cs-list-main">
                   <span
                     className="cs-dot"

@@ -1,7 +1,7 @@
 import type { LanguageCode } from '../../core/types.js';
 import type { TranslationDict } from '../i18n/en.js';
 import type { ConversationListItem } from '../services/apiClient.js';
-import { RefreshIcon } from '../utils/icons.js';
+import { BrandLogoIcon, RefreshIcon } from '../utils/icons.js';
 
 interface HeaderBarProps {
   t: TranslationDict;
@@ -11,7 +11,7 @@ interface HeaderBarProps {
   connected: boolean;
   isHidden: boolean;
   onSelectConversation: (conversationId: string) => void;
-  onToggleLanguage: () => void;
+  onSetLanguage: (language: LanguageCode) => void;
   onRefresh: () => void;
 }
 
@@ -23,14 +23,16 @@ export function HeaderBar({
   connected,
   isHidden,
   onSelectConversation,
-  onToggleLanguage,
+  onSetLanguage,
   onRefresh
 }: HeaderBarProps) {
   return (
     <header className="cs-header">
       <div className="cs-brand">
+        <BrandLogoIcon className="cs-brand-icon" />
         <span className="cs-brand-title">{t.appTitle}</span>
-        <span className={`cs-badge ${connected ? 'cs-badge-ok' : ''}`}>
+        <span className={`cs-status-pill ${connected && !isHidden ? 'is-live' : ''}`}>
+          <span className="cs-status-dot" />
           {isHidden ? t.header.pausedHidden : t.header.liveConnected}
         </span>
       </div>
@@ -49,17 +51,25 @@ export function HeaderBar({
             ))}
           </select>
         )}
+        <div className="cs-lang-switch" role="group" aria-label={t.settings.language}>
+          <button
+            type="button"
+            className={`cs-lang-btn ${language === 'en' ? 'is-active' : ''}`}
+            onClick={() => onSetLanguage('en')}
+          >
+            EN
+          </button>
+          <button
+            type="button"
+            className={`cs-lang-btn ${language === 'tr' ? 'is-active' : ''}`}
+            onClick={() => onSetLanguage('tr')}
+          >
+            TR
+          </button>
+        </div>
         <button
           type="button"
-          className="cs-btn"
-          onClick={onToggleLanguage}
-          title="Toggle language"
-        >
-          {language.toUpperCase()}
-        </button>
-        <button
-          type="button"
-          className="cs-btn"
+          className="cs-btn cs-btn-icon"
           onClick={onRefresh}
           title={t.header.refresh}
           aria-label={t.header.refresh}

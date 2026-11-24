@@ -28,6 +28,11 @@ export function ContextMeterCard({ t, snapshot, config }: ContextMeterCardProps)
   const limit = snapshot.modelLimit.contextLimit;
   const usagePct = snapshot.usagePct;
   const clampedWidth = usagePct !== null ? Math.min(100, Math.max(0, usagePct)) : 0;
+  const cachedShare =
+    snapshot.totalInputTokens > 0
+      ? Math.min(100, (snapshot.cacheReadTokens / snapshot.totalInputTokens) * 100)
+      : 0;
+  const uncachedShare = Math.max(0, 100 - cachedShare);
 
   let badgeClass = 'cs-badge';
   let fillColor = 'var(--cs-accent)';
@@ -51,7 +56,7 @@ export function ContextMeterCard({ t, snapshot, config }: ContextMeterCardProps)
           <GaugeIcon />
           {t.meter.title}
         </span>
-        <span className="cs-badge">{snapshot.model ?? '-'}</span>
+        <span className="cs-badge cs-badge-mono">{snapshot.model ?? '-'}</span>
       </div>
 
       <div className="cs-hero-row">
@@ -66,21 +71,52 @@ export function ContextMeterCard({ t, snapshot, config }: ContextMeterCardProps)
         </span>
       </div>
 
-      <div className="cs-meter-track" role="progressbar" aria-valuenow={clampedWidth} aria-valuemin={0} aria-valuemax={100}>
+      <div className="cs-meter-wrap">
         <div
-          className="cs-meter-fill"
-          style={{ width: `${clampedWidth}%`, backgroundColor: fillColor }}
-        />
-        {snapshot.compactionPct !== null && (
-          <div
-            className="cs-meter-marker"
-            style={{ left: `${Math.min(99, Math.max(1, snapshot.compactionPct))}%` }}
-            title={`${t.meter.compactionMarker}${snapshot.compactionPct}%`}
-          />
-        )}
+          className="cs-meter-track"
+          role="progressbar"
+          aria-valuenow={clampedWidth}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
+          <div className="cs-meter-fill-group" style={{ width: `${clampedWidth}%` }}>
+            {cachedShare > 0 && (
+              <div
+                className="cs-meter-cached"
+                style={{ width: `${cachedShare}%`, backgroundColor: fillColor }}
+                title={`${formatExactNumber(snapshot.cacheReadTokens)} cached`}
+              />
+            )}
+            {uncachedShare > 0 && (
+              <div
+                className="cs-meter-uncached"
+                style={{ width: `${uncachedShare}%`, backgroundColor: fillColor }}
+                title={`${formatExactNumber(snapshot.uncachedInputTokens)} uncached`}
+              />
+            )}
+          </div>
+          {snapshot.compactionPct !== null && (
+            <div
+              className="cs-meter-marker"
+              style={{ left: `${Math.min(99, Math.max(1, snapshot.compactionPct))}%` }}
+              title={`${t.meter.compactionMarker}${snapshot.compactionPct}%`}
+            />
+          )}
+        </div>
+        <div className="cs-meter-caption">
+          <span>
+            {formatTokens(snapshot.cacheReadTokens)} cached · {formatTokens(snapshot.uncachedInputTokens)} uncached
+          </span>
+          {snapshot.compactionPct !== null && (
+            <span>
+              {t.meter.compactionMarker}
+              {snapshot.compactionPct}%
+            </span>
+          )}
+        </div>
       </div>
 
-      <div className="cs-stats-grid">
+      <div className="cs-kpi-grid">
         <div className="cs-stat-box">
           <span className="cs-stat-label">{t.meter.turnCacheHit}</span>
           <span className="cs-stat-val">

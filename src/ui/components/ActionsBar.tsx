@@ -41,20 +41,11 @@ export function ActionsBar({ t, language, snapshot }: ActionsBarProps) {
   };
 
   return (
-    <section className="cs-card">
-      <div className="cs-card-head">
-        <span className="cs-card-title">{t.actions.title}</span>
-        {feedback && (
-          <span className="cs-feedback">
-            <CheckIcon />
-            {feedback}
-          </span>
-        )}
-      </div>
-      <div className="cs-actions">
+    <section className="cs-quickbar" aria-label={t.actions.title}>
+      <div className="cs-quickbar-actions">
         <button
           type="button"
-          className="cs-btn cs-btn-primary"
+          className="cs-btn cs-btn-compact cs-btn-primary"
           onClick={() => void handleAgentPrompt(buildSmartHandoffPrompt(language))}
         >
           <SendIcon />
@@ -62,7 +53,7 @@ export function ActionsBar({ t, language, snapshot }: ActionsBarProps) {
         </button>
         <button
           type="button"
-          className="cs-btn"
+          className="cs-btn cs-btn-compact"
           onClick={() => void handleAgentPrompt(buildCompactCheckpointPrompt(language))}
         >
           <SendIcon />
@@ -70,7 +61,7 @@ export function ActionsBar({ t, language, snapshot }: ActionsBarProps) {
         </button>
         <button
           type="button"
-          className="cs-btn"
+          className="cs-btn cs-btn-compact"
           disabled={!snapshot}
           onClick={() => void handleCopyReport()}
         >
@@ -78,6 +69,12 @@ export function ActionsBar({ t, language, snapshot }: ActionsBarProps) {
           {t.actions.copyReport}
         </button>
       </div>
+      {feedback && (
+        <span className="cs-feedback">
+          <CheckIcon />
+          {feedback}
+        </span>
+      )}
     </section>
   );
 }

@@ -1067,7 +1067,7 @@ async function serveStaticAsset(res, publicDir, pathname) {
     const ext = path4.extname(targetPath).toLowerCase();
     res.writeHead(200, {
       "Content-Type": MIME_TYPES[ext] ?? "application/octet-stream",
-      "Cache-Control": ext === ".html" ? "no-cache" : "public, max-age=300"
+      "Cache-Control": ext === ".html" ? "no-store, no-cache, must-revalidate" : "public, max-age=300"
     });
     res.end(content);
   } catch {

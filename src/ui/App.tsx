@@ -137,6 +137,8 @@ export function App() {
         onRefresh={() => void loadSnapshotAndLists(selectedConvId)}
       />
 
+      <ActionsBar t={t} language={config.language} snapshot={snapshot} />
+
       <nav className="cs-tabs" role="tablist">
         <button
           type="button"
@@ -185,7 +187,6 @@ export function App() {
         <div className="cs-panel">
           <ContextMeterCard t={t} snapshot={snapshot} config={config} />
           <BreakdownCard t={t} snapshot={snapshot} />
-          <ActionsBar t={t} language={config.language} snapshot={snapshot} />
         </div>
       )}
 

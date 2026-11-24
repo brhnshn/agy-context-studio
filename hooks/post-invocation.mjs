@@ -1,5 +1,7 @@
 // src/hooks/post-invocation.ts
-import { pathToFileURL } from "node:url";
+import fs3 from "node:fs";
+import path4 from "node:path";
+import { fileURLToPath as fileURLToPath2 } from "node:url";
 
 // src/core/paths.ts
 import os from "node:os";
@@ -1015,8 +1017,17 @@ async function readStdin() {
   }
   return Buffer.concat(chunks).toString("utf8");
 }
-var isDirectEntry = typeof process.argv[1] === "string" && import.meta.url === pathToFileURL(process.argv[1]).href;
-if (isDirectEntry) {
+function isDirectEntryModule() {
+  if (typeof process.argv[1] !== "string" || process.argv[1].trim().length === 0) {
+    return false;
+  }
+  try {
+    return fs3.realpathSync(fileURLToPath2(import.meta.url)) === fs3.realpathSync(path4.resolve(process.argv[1]));
+  } catch {
+    return path4.resolve(fileURLToPath2(import.meta.url)) === path4.resolve(process.argv[1]);
+  }
+}
+if (isDirectEntryModule()) {
   readStdin().then((stdinText) => runPostInvocationHook(stdinText)).then((output) => {
     process.stdout.write(`${JSON.stringify(output)}
 `);

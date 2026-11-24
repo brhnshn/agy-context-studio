@@ -24,13 +24,13 @@
   --cs-scrollbar-thumb-light: #94a3b8;
   --cs-scrollbar-thumb-dark: #334155;
 
-  --cs-bg: var(--vscode-sideBar-background, var(--vscode-editor-background, var(--cs-bg-dark)));
-  --cs-surface: var(--vscode-editorWidget-background, var(--vscode-editor-background, var(--cs-surface-dark)));
-  --cs-surface-subtle: var(--vscode-list-hoverBackground, var(--cs-surface-subtle-dark));
-  --cs-border: var(--vscode-panel-border, var(--vscode-widget-border, var(--cs-border-dark)));
-  --cs-border-strong: var(--vscode-focusBorder, var(--cs-border-strong-dark));
-  --cs-text: var(--vscode-foreground, var(--vscode-editor-foreground, var(--cs-text-dark)));
-  --cs-muted: var(--vscode-descriptionForeground, var(--cs-muted-dark));
+  --cs-bg: var(--background, var(--vscode-sideBar-background, var(--vscode-editor-background, var(--cs-bg-dark))));
+  --cs-surface: var(--card, var(--vscode-editorWidget-background, var(--vscode-editor-background, var(--cs-surface-dark))));
+  --cs-surface-subtle: var(--muted, var(--vscode-list-hoverBackground, var(--cs-surface-subtle-dark)));
+  --cs-border: var(--border, var(--vscode-panel-border, var(--vscode-widget-border, var(--cs-border-dark))));
+  --cs-border-strong: var(--ring, var(--vscode-focusBorder, var(--cs-border-strong-dark)));
+  --cs-text: var(--foreground, var(--vscode-foreground, var(--vscode-editor-foreground, var(--cs-text-dark))));
+  --cs-muted: var(--muted-foreground, var(--vscode-descriptionForeground, var(--cs-muted-dark)));
   --cs-accent: var(--vscode-button-background, var(--cs-accent-dark));
   --cs-accent-fg: var(--vscode-button-foreground, var(--cs-accent-fg-dark));
   --cs-scrollbar-track: var(--cs-scrollbar-track-dark);
@@ -57,13 +57,13 @@
 
 @media (prefers-color-scheme: light) {
   :root {
-    --cs-bg: var(--vscode-sideBar-background, var(--vscode-editor-background, var(--cs-bg-light)));
-    --cs-surface: var(--vscode-editorWidget-background, var(--cs-surface-light));
-    --cs-surface-subtle: var(--vscode-list-hoverBackground, var(--cs-surface-subtle-light));
-    --cs-border: var(--vscode-panel-border, var(--cs-border-light));
-    --cs-border-strong: var(--vscode-focusBorder, var(--cs-border-strong-light));
-    --cs-text: var(--vscode-foreground, var(--cs-text-light));
-    --cs-muted: var(--vscode-descriptionForeground, var(--cs-muted-light));
+    --cs-bg: var(--background, var(--vscode-sideBar-background, var(--vscode-editor-background, var(--cs-bg-light))));
+    --cs-surface: var(--card, var(--vscode-editorWidget-background, var(--cs-surface-light)));
+    --cs-surface-subtle: var(--muted, var(--vscode-list-hoverBackground, var(--cs-surface-subtle-light)));
+    --cs-border: var(--border, var(--vscode-panel-border, var(--cs-border-light)));
+    --cs-border-strong: var(--ring, var(--vscode-focusBorder, var(--cs-border-strong-light)));
+    --cs-text: var(--foreground, var(--vscode-foreground, var(--cs-text-light)));
+    --cs-muted: var(--muted-foreground, var(--vscode-descriptionForeground, var(--cs-muted-light)));
     --cs-accent: var(--vscode-button-background, var(--cs-accent-light));
     --cs-accent-fg: var(--vscode-button-foreground, var(--cs-accent-fg-light));
     --cs-scrollbar-track: var(--cs-scrollbar-track-light);

@@ -1,6 +1,7 @@
+import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { IncrementalTranscriptReader } from '../core/index.js';
 import { handleSidecarRequest } from './routes.js';
 import { TranscriptWatchManager } from './watcher.js';
@@ -8,6 +9,19 @@ import { TranscriptWatchManager } from './watcher.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_PUBLIC_DIR = path.join(__dirname, 'public');
 const PLUGIN_VERSION = '0.1.0';
+
+function isDirectEntryModule(): boolean {
+  if (typeof process.argv[1] !== 'string' || process.argv[1].trim().length === 0) {
+    return false;
+  }
+  try {
+    const currentFile = fs.realpathSync(fileURLToPath(import.meta.url));
+    const entryFile = fs.realpathSync(path.resolve(process.argv[1]));
+    return currentFile === entryFile;
+  } catch {
+    return path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1]);
+  }
+}
 
 export interface CreateSidecarServerOptions {
   port?: number;
@@ -31,7 +45,13 @@ export async function createSidecarServer(
 ): Promise<SidecarServerInstance> {
   const host = options.host ?? '127.0.0.1';
   const requestedPort =
-    options.port ?? Number(process.env.SIDECAR_PORT || process.env.PORT || 3847);
+    options.port ??
+    Number(
+      process.env.ANTIGRAVITY_SIDECAR_WEB_PORT ||
+        process.env.SIDECAR_PORT ||
+        process.env.PORT ||
+        3847
+    );
   const publicDir = options.publicDir ?? DEFAULT_PUBLIC_DIR;
 
   const reader = new IncrementalTranscriptReader();
@@ -91,14 +111,10 @@ export async function createSidecarServer(
   };
 }
 
-const isDirectEntry =
-  typeof process.argv[1] === 'string' &&
-  import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
-
-if (isDirectEntry) {
+if (isDirectEntryModule()) {
   createSidecarServer()
     .then((instance) => {
-      console.log(`[agy-context-studio] sidecar listening on http://${instance.host}:${instance.port}`);
+      console.log(`[sidecar] listening on ${instance.host}:${instance.port}`);
       const shutdown = () => {
         void instance.close().finally(() => process.exit(0));
       };

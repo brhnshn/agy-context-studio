@@ -1,6 +1,8 @@
+import { execFile } from 'node:child_process';
 import fs from 'node:fs/promises';
 import type http from 'node:http';
 import path from 'node:path';
+import { promisify } from 'node:util';
 import {
   aggregateUsageHistory,
   buildContextSnapshot,
@@ -15,6 +17,8 @@ import {
   writePluginConfig
 } from '../core/index.js';
 import type { TranscriptWatchManager } from './watcher.js';
+
+const execFileAsync = promisify(execFile);
 
 const MAX_JSON_BODY_BYTES = 64 * 1024;
 
@@ -78,12 +82,40 @@ async function resolveTargetConversationId(
   if (queryParam && queryParam.trim().length > 0) {
     return queryParam.trim();
   }
-  const envConv = process.env.CONVERSATION_ID || process.env.SIDECAR_CONVERSATION_ID;
+  const envConv =
+    process.env.ANTIGRAVITY_CONVERSATION_ID ||
+    process.env.CONVERSATION_ID ||
+    process.env.SIDECAR_CONVERSATION_ID;
   if (envConv && envConv.trim().length > 0) {
     return envConv.trim();
   }
   const entries = await listConversationEntries(antigravityHome);
   return entries[0]?.conversationId ?? null;
+}
+
+function isAuthorizedSidecarRequest(req: http.IncomingMessage, url: URL): boolean {
+  const expectedToken = process.env.ANTIGRAVITY_SIDECAR_UI_TOKEN;
+  if (!expectedToken) {
+    return true;
+  }
+  const headerToken = req.headers['x-sidecar-token'];
+  const provided =
+    (typeof headerToken === 'string' ? headerToken : undefined) ?? url.searchParams.get('token');
+  return provided === expectedToken;
+}
+
+async function resolvePreloadJs(antigravityHome?: string): Promise<string> {
+  const candidates = [
+    path.join(resolveAntigravityHome(antigravityHome), 'lib', 'node_modules', 'sidecar_sdk', 'preload.js')
+  ];
+  for (const candidate of candidates) {
+    try {
+      return await fs.readFile(candidate, 'utf8');
+    } catch {
+      // Try next candidate
+    }
+  }
+  return '// Standalone mode: Antigravity sidecar preload not present.\n';
 }
 
 async function serveStaticAsset(
@@ -138,6 +170,59 @@ export async function handleSidecarRequest(
   const method = (req.method ?? 'GET').toUpperCase();
   const url = new URL(req.url ?? '/', 'http://127.0.0.1');
   const pathname = url.pathname;
+
+  if (method !== 'GET' && !isAuthorizedSidecarRequest(req, url)) {
+    sendJson(res, 401, { error: 'unauthorized' });
+    return;
+  }
+
+  if (method === 'GET' && pathname === '/preload.js') {
+    const preloadScript = await resolvePreloadJs(ctx.antigravityHome);
+    res.writeHead(200, {
+      'Content-Type': 'application/javascript; charset=utf-8',
+      'Cache-Control': 'no-store'
+    });
+    res.end(preloadScript);
+    return;
+  }
+
+  if (method === 'POST' && pathname === '/_sidecar/send-message') {
+    try {
+      const body = await readJsonBody(req);
+      const conversationId =
+        typeof body.conversationId === 'string' && body.conversationId.trim().length > 0
+          ? body.conversationId.trim()
+          : (await resolveTargetConversationId(null, ctx.antigravityHome)) ?? '';
+      const message = typeof body.message === 'string' ? body.message : '';
+      if (!conversationId || !message) {
+        sendJson(res, 400, { error: 'conversationId and message are required' });
+        return;
+      }
+
+      const exe = process.env.ANTIGRAVITY_AGENTAPI_EXE;
+      const file = exe || 'agentapi';
+      const args = ['send-message'];
+      if (typeof body.title === 'string' && body.title.trim()) {
+        args.push('--title', body.title.trim());
+      }
+      args.push(conversationId, message);
+      const execArgs = exe ? ['agentapi', ...args] : args;
+
+      const env = { ...process.env };
+      if (typeof body.projectId === 'string' && body.projectId.trim()) {
+        env.ANTIGRAVITY_PROJECT_ID = body.projectId.trim();
+      }
+
+      const { stdout } = await execFileAsync(file, execArgs, { env });
+      const parsed = stdout.trim() ? (JSON.parse(stdout) as unknown) : { ok: true };
+      sendJson(res, 200, parsed);
+    } catch (error) {
+      sendJson(res, 500, {
+        error: error instanceof Error ? error.message : 'Failed to send message via agentapi'
+      });
+    }
+    return;
+  }
 
   if (method === 'GET' && pathname === '/api/health') {
     const antigravityHome = resolveAntigravityHome(ctx.antigravityHome);

@@ -1,10 +1,11 @@
 interface SidecarGlobal {
   conversationId?: string;
+  fetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
   config?: {
     conversationId?: string;
   };
   agent?: {
-    sendMessage?: (prompt: string) => Promise<unknown> | unknown;
+    sendMessage?: (prompt: string, convId?: string) => Promise<unknown> | unknown;
   };
 }
 

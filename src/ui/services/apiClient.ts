@@ -12,12 +12,22 @@ export interface ConversationListItem {
 }
 
 async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(init?.headers ?? {})
+  const fetcher = typeof window.sidecar?.fetch === 'function' ? window.sidecar.fetch : fetch;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...((init?.headers as Record<string, string>) ?? {})
+  };
+  try {
+    const token = new URLSearchParams(window.location.search).get('token');
+    if (token && !headers['x-sidecar-token']) {
+      headers['x-sidecar-token'] = token;
     }
+  } catch {
+    // Ignore invalid location
+  }
+  const response = await fetcher(url, {
+    ...init,
+    headers
   });
   if (!response.ok) {
     throw new Error(`HTTP ${response.status} for ${url}`);

@@ -1,7 +1,8 @@
 // src/sidecar/server.ts
+import fs6 from "node:fs";
 import http from "node:http";
 import path6 from "node:path";
-import { fileURLToPath as fileURLToPath2, pathToFileURL } from "node:url";
+import { fileURLToPath as fileURLToPath2 } from "node:url";
 
 // src/core/paths.ts
 import fs from "node:fs/promises";
@@ -984,8 +985,11 @@ async function buildContextSnapshot(conversationId, options = {}) {
 }
 
 // src/sidecar/routes.ts
+import { execFile } from "node:child_process";
 import fs4 from "node:fs/promises";
 import path4 from "node:path";
+import { promisify } from "node:util";
+var execFileAsync = promisify(execFile);
 var MAX_JSON_BODY_BYTES = 64 * 1024;
 var MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -1030,12 +1034,33 @@ async function resolveTargetConversationId(queryParam, antigravityHome) {
   if (queryParam && queryParam.trim().length > 0) {
     return queryParam.trim();
   }
-  const envConv = process.env.CONVERSATION_ID || process.env.SIDECAR_CONVERSATION_ID;
+  const envConv = process.env.ANTIGRAVITY_CONVERSATION_ID || process.env.CONVERSATION_ID || process.env.SIDECAR_CONVERSATION_ID;
   if (envConv && envConv.trim().length > 0) {
     return envConv.trim();
   }
   const entries = await listConversationEntries(antigravityHome);
   return entries[0]?.conversationId ?? null;
+}
+function isAuthorizedSidecarRequest(req, url) {
+  const expectedToken = process.env.ANTIGRAVITY_SIDECAR_UI_TOKEN;
+  if (!expectedToken) {
+    return true;
+  }
+  const headerToken = req.headers["x-sidecar-token"];
+  const provided = (typeof headerToken === "string" ? headerToken : void 0) ?? url.searchParams.get("token");
+  return provided === expectedToken;
+}
+async function resolvePreloadJs(antigravityHome) {
+  const candidates = [
+    path4.join(resolveAntigravityHome(antigravityHome), "lib", "node_modules", "sidecar_sdk", "preload.js")
+  ];
+  for (const candidate of candidates) {
+    try {
+      return await fs4.readFile(candidate, "utf8");
+    } catch {
+    }
+  }
+  return "// Standalone mode: Antigravity sidecar preload not present.\n";
 }
 async function serveStaticAsset(res, publicDir, pathname) {
   const resolvedRoot = path4.resolve(publicDir);
@@ -1076,6 +1101,50 @@ async function handleSidecarRequest(req, res, ctx) {
   const method = (req.method ?? "GET").toUpperCase();
   const url = new URL(req.url ?? "/", "http://127.0.0.1");
   const pathname = url.pathname;
+  if (method !== "GET" && !isAuthorizedSidecarRequest(req, url)) {
+    sendJson(res, 401, { error: "unauthorized" });
+    return;
+  }
+  if (method === "GET" && pathname === "/preload.js") {
+    const preloadScript = await resolvePreloadJs(ctx.antigravityHome);
+    res.writeHead(200, {
+      "Content-Type": "application/javascript; charset=utf-8",
+      "Cache-Control": "no-store"
+    });
+    res.end(preloadScript);
+    return;
+  }
+  if (method === "POST" && pathname === "/_sidecar/send-message") {
+    try {
+      const body = await readJsonBody(req);
+      const conversationId = typeof body.conversationId === "string" && body.conversationId.trim().length > 0 ? body.conversationId.trim() : await resolveTargetConversationId(null, ctx.antigravityHome) ?? "";
+      const message = typeof body.message === "string" ? body.message : "";
+      if (!conversationId || !message) {
+        sendJson(res, 400, { error: "conversationId and message are required" });
+        return;
+      }
+      const exe = process.env.ANTIGRAVITY_AGENTAPI_EXE;
+      const file = exe || "agentapi";
+      const args = ["send-message"];
+      if (typeof body.title === "string" && body.title.trim()) {
+        args.push("--title", body.title.trim());
+      }
+      args.push(conversationId, message);
+      const execArgs = exe ? ["agentapi", ...args] : args;
+      const env = { ...process.env };
+      if (typeof body.projectId === "string" && body.projectId.trim()) {
+        env.ANTIGRAVITY_PROJECT_ID = body.projectId.trim();
+      }
+      const { stdout } = await execFileAsync(file, execArgs, { env });
+      const parsed = stdout.trim() ? JSON.parse(stdout) : { ok: true };
+      sendJson(res, 200, parsed);
+    } catch (error) {
+      sendJson(res, 500, {
+        error: error instanceof Error ? error.message : "Failed to send message via agentapi"
+      });
+    }
+    return;
+  }
   if (method === "GET" && pathname === "/api/health") {
     const antigravityHome = resolveAntigravityHome(ctx.antigravityHome);
     const pluginDataDir = resolvePluginDataDir(ctx.pluginDataDir);
@@ -1364,9 +1433,23 @@ data: ${JSON.stringify(snapshot)}
 var __dirname = path6.dirname(fileURLToPath2(import.meta.url));
 var DEFAULT_PUBLIC_DIR = path6.join(__dirname, "public");
 var PLUGIN_VERSION = "0.1.0";
+function isDirectEntryModule() {
+  if (typeof process.argv[1] !== "string" || process.argv[1].trim().length === 0) {
+    return false;
+  }
+  try {
+    const currentFile = fs6.realpathSync(fileURLToPath2(import.meta.url));
+    const entryFile = fs6.realpathSync(path6.resolve(process.argv[1]));
+    return currentFile === entryFile;
+  } catch {
+    return path6.resolve(fileURLToPath2(import.meta.url)) === path6.resolve(process.argv[1]);
+  }
+}
 async function createSidecarServer(options = {}) {
   const host = options.host ?? "127.0.0.1";
-  const requestedPort = options.port ?? Number(process.env.SIDECAR_PORT || process.env.PORT || 3847);
+  const requestedPort = options.port ?? Number(
+    process.env.ANTIGRAVITY_SIDECAR_WEB_PORT || process.env.SIDECAR_PORT || process.env.PORT || 3847
+  );
   const publicDir = options.publicDir ?? DEFAULT_PUBLIC_DIR;
   const reader = new IncrementalTranscriptReader();
   const watcher = new TranscriptWatchManager({
@@ -1419,10 +1502,9 @@ async function createSidecarServer(options = {}) {
     close
   };
 }
-var isDirectEntry = typeof process.argv[1] === "string" && import.meta.url === pathToFileURL(path6.resolve(process.argv[1])).href;
-if (isDirectEntry) {
+if (isDirectEntryModule()) {
   createSidecarServer().then((instance) => {
-    console.log(`[agy-context-studio] sidecar listening on http://${instance.host}:${instance.port}`);
+    console.log(`[sidecar] listening on ${instance.host}:${instance.port}`);
     const shutdown = () => {
       void instance.close().finally(() => process.exit(0));
     };

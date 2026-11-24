@@ -1,4 +1,6 @@
-import { pathToFileURL } from 'node:url';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   buildContextSnapshot,
   readHookState,
@@ -75,11 +77,21 @@ async function readStdin(): Promise<string> {
   return Buffer.concat(chunks).toString('utf8');
 }
 
-const isDirectEntry =
-  typeof process.argv[1] === 'string' &&
-  import.meta.url === pathToFileURL(process.argv[1]).href;
+function isDirectEntryModule(): boolean {
+  if (typeof process.argv[1] !== 'string' || process.argv[1].trim().length === 0) {
+    return false;
+  }
+  try {
+    return (
+      fs.realpathSync(fileURLToPath(import.meta.url)) ===
+      fs.realpathSync(path.resolve(process.argv[1]))
+    );
+  } catch {
+    return path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1]);
+  }
+}
 
-if (isDirectEntry) {
+if (isDirectEntryModule()) {
   readStdin()
     .then((stdinText) => runPostInvocationHook(stdinText))
     .then((output) => {

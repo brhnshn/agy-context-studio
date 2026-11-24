@@ -69,6 +69,10 @@ test('Sidecar server serves health, conversations, state, history, settings, and
   assert.equal(htmlRes.status, 200);
   assert.match(await htmlRes.text(), /OK/);
 
+  const preloadRes = await fetch(`${baseUrl}/preload.js`);
+  assert.equal(preloadRes.status, 200);
+  assert.match(preloadRes.headers.get('content-type') ?? '', /javascript/);
+
   // 2. Conversations, Models & State
   const convRes = await fetch(`${baseUrl}/api/conversations`);
   const convJson = (await convRes.json()) as { conversations: Array<{ conversationId: string }> };

@@ -1,6 +1,8 @@
 // src/mcp/server.ts
+import fs4 from "node:fs";
+import path4 from "node:path";
 import readline from "node:readline";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath as fileURLToPath2 } from "node:url";
 
 // src/core/paths.ts
 import fs from "node:fs/promises";
@@ -1215,8 +1217,17 @@ function startStdioMcpServer() {
     });
   });
 }
-var isDirectEntry = typeof process.argv[1] === "string" && import.meta.url === pathToFileURL(process.argv[1]).href;
-if (isDirectEntry) {
+function isDirectEntryModule() {
+  if (typeof process.argv[1] !== "string" || process.argv[1].trim().length === 0) {
+    return false;
+  }
+  try {
+    return fs4.realpathSync(fileURLToPath2(import.meta.url)) === fs4.realpathSync(path4.resolve(process.argv[1]));
+  } catch {
+    return path4.resolve(fileURLToPath2(import.meta.url)) === path4.resolve(process.argv[1]);
+  }
+}
+if (isDirectEntryModule()) {
   startStdioMcpServer();
 }
 export {

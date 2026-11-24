@@ -73,7 +73,7 @@ export async function handleMcpRequest(
           protocolVersion: '2025-03-26',
           serverInfo: {
             name: 'agy-context-studio',
-            version: '0.1.0'
+            version: '0.1.1'
           },
           capabilities: {
             tools: {},

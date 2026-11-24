@@ -1,6 +1,6 @@
 {
   "name": "agy-context-studio",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
   "description": "Zero-token-overhead Context Window Monitor & Manager plugin for Google Antigravity.",
   "type": "module",

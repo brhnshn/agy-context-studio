@@ -8,7 +8,7 @@ import { TranscriptWatchManager } from './watcher.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_PUBLIC_DIR = path.join(__dirname, 'public');
-const PLUGIN_VERSION = '0.1.0';
+const PLUGIN_VERSION = '0.1.1';
 
 function isDirectEntryModule(): boolean {
   if (typeof process.argv[1] !== 'string' || process.argv[1].trim().length === 0) {

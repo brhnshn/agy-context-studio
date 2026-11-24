@@ -1020,7 +1020,7 @@ function renderContextCardHtml() {
         id: 1,
         method: 'ui/initialize',
         params: {
-          appInfo: { name: 'Context Studio Card', version: '0.1.0' },
+          appInfo: { name: 'Context Studio Card', version: '0.1.1' },
           appCapabilities: {},
           protocolVersion: '2026-01-26'
         }
@@ -1067,7 +1067,7 @@ async function handleMcpRequest(req, options = {}) {
           protocolVersion: "2025-03-26",
           serverInfo: {
             name: "agy-context-studio",
-            version: "0.1.0"
+            version: "0.1.1"
           },
           capabilities: {
             tools: {},

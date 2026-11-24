@@ -150,7 +150,7 @@ export function renderContextCardHtml(): string {
         id: 1,
         method: 'ui/initialize',
         params: {
-          appInfo: { name: 'Context Studio Card', version: '0.1.0' },
+          appInfo: { name: 'Context Studio Card', version: '0.1.1' },
           appCapabilities: {},
           protocolVersion: '2026-01-26'
         }

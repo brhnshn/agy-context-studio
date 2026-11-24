@@ -2,6 +2,13 @@
 
 All notable changes to `agy-context-studio` are documented in this file.
 
+## [0.1.1] - 2026-11-25
+
+### Fixed
+- **Native Antigravity Sidecar Startup (`server.ts`, `post-invocation.ts`, `mcp/server.ts`):** Resolved Windows junction entrypoint path resolution using `fs.realpathSync` so direct-execution checks succeed when Antigravity launches the linked plugin, and wired Antigravity sidecar environment variables (`ANTIGRAVITY_SIDECAR_WEB_PORT`, `ANTIGRAVITY_CONVERSATION_ID`, `ANTIGRAVITY_SIDECAR_UI_TOKEN`, `ANTIGRAVITY_AGENTAPI_EXE`).
+- **Sidecar Host Bridge & Routes (`src/sidecar/routes.ts`):** Added `/preload.js`, `POST /_sidecar/send-message`, `POST /_sidecar/get-conversation-metadata`, and loopback CORS/`OPTIONS` preflight headers.
+- **Aux Pane Blank Black Screen (`vite.config.ts`, `src/ui/`):** Compiled the sidecar UI as a classic non-module IIFE bundle (`assets/app.js`, `assets/app.css`) without `crossorigin`, moved `/preload.js` into `<head>`, switched requests and SSE (`?token=` preserved) to root-relative `/api/*` paths, and added a loading fallback plus React `ErrorBoundary`.
+
 ## [0.1.0] - 2026-11-25
 
 ### Added

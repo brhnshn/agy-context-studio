@@ -1467,7 +1467,7 @@ data: ${JSON.stringify(snapshot)}
 // src/sidecar/server.ts
 var __dirname = path6.dirname(fileURLToPath2(import.meta.url));
 var DEFAULT_PUBLIC_DIR = path6.join(__dirname, "public");
-var PLUGIN_VERSION = "0.1.0";
+var PLUGIN_VERSION = "0.1.1";
 function isDirectEntryModule() {
   if (typeof process.argv[1] !== "string" || process.argv[1].trim().length === 0) {
     return false;

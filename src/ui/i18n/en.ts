@@ -10,7 +10,7 @@ export const en = {
     refresh: 'Refresh',
     sessionLabel: 'Active session',
     sessionPlaceholder: 'Latest session',
-    liveConnected: 'Live',
+    liveConnected: 'Synced',
     pausedHidden: 'Paused'
   },
   meter: {

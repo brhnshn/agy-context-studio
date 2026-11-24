@@ -20,7 +20,7 @@ export const tr: {
     refresh: 'Yenile',
     sessionLabel: 'Aktif oturum',
     sessionPlaceholder: 'Son oturum',
-    liveConnected: 'Canlı',
+    liveConnected: 'Bağlı',
     pausedHidden: 'Duraklatıldı'
   },
   meter: {

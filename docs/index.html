@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>agy-context-studio — Context Window Monitor &amp; Manager for Google Antigravity</title>
+    <meta
+      name="description"
+      content="Zero-token-overhead live context window monitor, prompt cache diagnostics, threshold alerts, and smart handoff manager for Google Antigravity."
+    />
+    <link rel="icon" type="image/svg+xml" href="./assets/logo.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="#top">
+          <img src="./assets/logo.svg" alt="Context Studio logo" width="24" height="24" />
+          <span>agy-context-studio</span>
+          <span class="version-pill">v0.1.0</span>
+        </a>
+        <div class="header-actions">
+          <div class="lang-switch" role="group" aria-label="Language">
+            <button type="button" class="lang-btn is-active" data-lang="en">EN</button>
+            <button type="button" class="lang-btn" data-lang="tr">TR</button>
+          </div>
+          <a
+            class="btn btn-ghost"
+            href="https://github.com/brhnshn/agy-context-studio"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-i18n="nav.github"
+          >
+            GitHub
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main id="top" class="container">
+      <section class="hero">
+        <p class="eyebrow" data-i18n="hero.eyebrow">Google Antigravity Plugin · Zero Token Overhead</p>
+        <h1 data-i18n="hero.title">
+          See your exact context fill, prompt cache efficiency, and context bloaters in real time.
+        </h1>
+        <p class="hero-sub" data-i18n="hero.subtitle">
+          Local-first, zero-runtime-dependency Node ESM &amp; React Sidecar plugin for Antigravity Desktop, IDE, and CLI.
+        </p>
+
+        <div class="hero-cta">
+          <div class="install-box">
+            <code id="install-cmd">git clone https://github.com/brhnshn/agy-context-studio.git &amp;&amp; cd agy-context-studio &amp;&amp; npm install &amp;&amp; npm run build &amp;&amp; npm run link:plugin</code>
+            <button type="button" id="copy-install" class="btn btn-primary" data-i18n="hero.copy">
+              Copy
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="showcase">
+        <div class="showcase-head">
+          <h2 data-i18n="showcase.title">Live Interface Preview</h2>
+          <div class="shot-tabs" role="tablist">
+            <button type="button" class="shot-tab is-active" data-shot="overview-en" data-i18n="showcase.tabEn">
+              Overview (EN)
+            </button>
+            <button type="button" class="shot-tab" data-shot="overview-tr" data-i18n="showcase.tabTr">
+              Overview (TR)
+            </button>
+            <button type="button" class="shot-tab" data-shot="history" data-i18n="showcase.tabHistory">
+              7-Day History
+            </button>
+            <button type="button" class="shot-tab" data-shot="settings" data-i18n="showcase.tabSettings">
+              Settings
+            </button>
+          </div>
+        </div>
+
+        <figure class="shot-frame">
+          <img
+            id="showcase-img"
+            src="./screenshots/overview-en.png"
+            alt="agy-context-studio Overview screen"
+            loading="eager"
+          />
+          <figcaption id="showcase-caption" data-i18n="showcase.captionEn">
+            Dual-segment context fill meter, prompt cache efficiency, proportional breakdown (~estimate), and deduplicated top bloaters.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="section">
+        <h2 data-i18n="options.title">3 Modular Options</h2>
+        <div class="cards-grid">
+          <article class="card">
+            <span class="card-badge" data-i18n="options.opt1Badge">Default ON · 0 Tokens</span>
+            <h3 data-i18n="options.opt1Title">1. Live Sidecar Web UI</h3>
+            <p data-i18n="options.opt1Desc">
+              Watches transcript.jsonl incrementally by byte offset and streams updates over SSE. Includes exact token fill, prompt cache hits, subagent tracking, and 7-day history.
+            </p>
+          </article>
+          <article class="card">
+            <span class="card-badge" data-i18n="options.opt2Badge">Toggleable · 0 Model Tokens</span>
+            <h3 data-i18n="options.opt2Title">2. PostInvocation Threshold Hook</h3>
+            <p data-i18n="options.opt2Desc">
+              Checks configured warning (70%) and critical (85%) thresholds after each turn and emits a user-only markdown card without adding tokens to the model context.
+            </p>
+          </article>
+          <article class="card">
+            <span class="card-badge" data-i18n="options.opt3Badge">Sidecar + Opt-in MCP</span>
+            <h3 data-i18n="options.opt3Title">3. Interactive Context Manager</h3>
+            <p data-i18n="options.opt3Desc">
+              Top toolbar Quick Actions trigger Smart Handoff, Compact Checkpoint, and Markdown Report export. Includes an optional opt-in MCP App (disabled by default).
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 data-i18n="arch.title">How It Works (Zero Overhead)</h2>
+        <pre class="arch-box">transcript.jsonl (local disk)
+  ├──▶ Incremental Byte-Offset Core (0 model tokens)
+  │      ├──▶ Sidecar HTTP + SSE Server ──▶ Aux-Pane React UI + Quick Actions
+  │      ├──▶ PostInvocation Hook ──────────▶ User-only warning card (systemMessage: "")
+  │      └──▶ Opt-In MCP App (default OFF) ─▶ get_context_health + ui:// inline card</pre>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <span>MIT License · agy-context-studio</span>
+        <div class="footer-links">
+          <a href="https://github.com/brhnshn/agy-context-studio/blob/main/README.md">README (EN)</a>
+          <a href="https://github.com/brhnshn/agy-context-studio/blob/main/README.tr.md">README (TR)</a>
+          <a href="https://github.com/brhnshn/agy-context-studio/blob/main/SPEC.md">SPEC</a>
+          <a href="https://github.com/brhnshn/agy-context-studio/blob/main/CHANGELOG.md">CHANGELOG</a>
+        </div>
+      </div>
+    </footer>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

@@ -1,47 +1,94 @@
-# agy-context-studio
+<div align="center">
+  <img src="assets/logo.svg" alt="agy-context-studio logo" width="64" height="64" />
+  <h1>agy-context-studio</h1>
+  <p><strong>Zero-token-overhead Context Window Monitor &amp; Manager for Google Antigravity</strong></p>
+  <p><em>Google Antigravity için sıfır token maliyetli canlı Bağlam Penceresi İzleyicisi ve Yöneticisi</em></p>
+  <p>
+    <a href="README.tr.md"><strong>🇹🇷 Türkçe Dokümantasyon</strong></a> ·
+    <a href="https://brhnshn.github.io/agy-context-studio/"><strong>Live Showcase</strong></a> ·
+    <a href="SPEC.md">Technical Spec</a> ·
+    <a href="CHANGELOG.md">Changelog</a>
+  </p>
+</div>
 
-> Zero-token-overhead Context Window Monitor & Manager plugin for Google Antigravity (Desktop 2.0, IDE, and CLI).
+---
 
-`agy-context-studio` gives you real-time visibility and practical control over your active LLM context window without spending model tokens to monitor itself.
+> **Türkçe Özet:** `agy-context-studio`, Google Antigravity (Desktop 2.0, IDE ve CLI) oturumlarındaki gerçek bağlam penceresi doluluğunu, Prompt Cache isabet oranını, bağlamı en çok şişiren araç/dosya adımlarını, alt ajan tokenlarını ve 7 günlük kullanım geçmişini **model bağlamına sıfır token yükü ekleyerek** canlı gösterir. Arayüz ve uyarı kancası dahili **TR / EN** dil desteğine sahiptir; ayrıntılı Türkçe kullanım kılavuzu için **[README.tr.md](README.tr.md)** sayfasına geçebilirsiniz.
+
+---
+
+## Screenshots
+
+| Overview (English) | Genel Bakış (Türkçe) |
+| :---: | :---: |
+| ![Overview EN](docs/screenshots/overview-en.png) | ![Overview TR](docs/screenshots/overview-tr.png) |
+
+| 7-Day History | Settings & Detected Models |
+| :---: | :---: |
+| ![7-Day History](docs/screenshots/history.png) | ![Settings](docs/screenshots/settings.png) |
+
+---
+
+## Key Features (3 Modular Options)
+
+1. **Option 1 — Live Sidecar Web UI Monitor (Default: ON · 0 Tokens)**
+   - **Exact Context Fill:** Reads `input_tokens + cache_read_tokens` from local `transcript.jsonl` via incremental byte-offset parsing and streams updates over SSE (`fs.watch`).
+   - **Dual-Segment Fill Meter:** Visualizes cached vs. uncached tokens alongside the model's auto-compaction marker (`Compaction ~80%`).
+   - **Prompt Cache Diagnostics:** Shows turn-level and cumulative session Prompt Cache hit percentages and token velocity (`tokens/turn`).
+   - **Proportional Breakdown (`~estimate`) & Top Bloaters:** Interactive category filter pills (`User`, `Assistant`, `Thinking`, `Tools`, `System`) and deduplicated tool summaries (`edit_file ×15 (en.ts, tr.ts)`).
+   - **Subagents & 7-Day History:** Tracks spawned subagents (`invoke_subagent`) and aggregates local 7-day token volume and cache savings.
+   - **Built-in EN / TR Switcher:** Instant UI and hook alert localization synced with Antigravity's light/dark theme.
+
+2. **Option 2 — Automatic Threshold Warnings via `PostInvocation` Hook (Toggleable · 0 Model Tokens)**
+   - Evaluates context fill after every model turn against configurable warning (`70%`) and critical (`85%`) thresholds.
+   - Emits a user-only markdown card (`metadata.user_markdown` with `systemMessage: ""`) once per threshold per session and resets automatically after compaction.
+
+3. **Option 3 — Interactive Context Manager (Top Quick Actions + Opt-In MCP App)**
+   - **Layer 3A — Sidecar Quick Actions (Default: ON · 0 Background Tokens):** Compact top toolbar offering one-click **Smart Handoff**, **Compact Checkpoint**, and **Copy Markdown Report** via `window.sidecar.agent.sendMessage()` (with clipboard fallback).
+   - **Layer 3B — Opt-In MCP App (Default: OFF):** Optional `get_context_health` tool + inline `ui://agy-context-studio/card.html` conversation card ([mcp/mcp_config.template.json](mcp/mcp_config.template.json)).
+
+---
 
 ## Architecture
 
-```text
-transcript.jsonl (disk)
-   ├──▶ src/core/ (Incremental byte-offset reader, model limits, ~breakdown, bloaters, subagents, 7-day history)
-   │       ├──▶ Sidecar HTTP + SSE Server (Option 1: Live Aux-Pane Web UI + Layer 3A Handoff Actions · 0 tokens)
-   │       ├──▶ PostInvocation Hook (Option 2: User-only threshold cards via metadata.user_markdown · 0 tokens)
-   │       └──▶ Opt-In MCP App Server (Option 3B: get_context_health + ui:// inline card · default OFF)
+```mermaid
+flowchart LR
+  T["transcript.jsonl (local disk)"] --> C["src/core/ Incremental Byte-Offset Engine"]
+  C --> S["Sidecar HTTP + SSE Server (server.mjs)"]
+  S --> UI["Aux-Pane React Web UI (EN / TR)"]
+  C --> H["PostInvocation Hook (post-invocation.mjs)"]
+  H -->|"systemMessage: '' (0 tokens)"| U["User-only markdown alert"]
+  C -.->|"Opt-in (default OFF)"| M["MCP App Server (mcp/server.mjs)"]
 ```
 
-## Features (3 Modular Options)
+---
 
-1. **Live Sidecar Web UI Monitor (Default: ON · 0 Tokens)**
-   - Exact `totalInputTokens / limit` fill meter with auto-compaction threshold marker.
-   - Turn-level and session-wide **Prompt Cache** efficiency tracking (`cache_read_tokens / (input_tokens + cache_read_tokens)`).
-   - Proportional category breakdown (explicitly labeled as `~estimate`) + **Top Context Bloaters** list.
-   - Subagent token summary and 7-day local usage/cache-savings history.
-   - Synced with Antigravity's light/dark theme and includes an **EN / TR** language switcher.
+## Quick Start & Local Installation
 
-2. **Automatic Threshold Warnings via `PostInvocation` Hook (Toggleable · 0 Model Tokens)**
-   - Evaluates context fill after each model turn (`70%` warning / `85%` critical by default, configurable in Settings).
-   - Emits a clean user-only markdown card (`metadata.user_markdown` with empty `systemMessage`) once per threshold per session and resets automatically after compaction.
-
-3. **Interactive Context Manager (Sidecar Actions + Opt-In MCP App)**
-   - **Layer 3A — Sidecar Bridge (Default: ON · 0 Background Tokens):** One-click **Smart Handoff**, **Compact Checkpoint**, and **Copy Markdown Report** using `window.sidecar.agent.sendMessage()` (with clipboard fallback).
-   - **Layer 3B — Opt-In MCP App (Default: OFF):** Optional `get_context_health` tool + inline `ui://agy-context-studio/card.html` card (~350 schema tokens/turn only if manually enabled via [mcp/mcp_config.template.json](mcp/mcp_config.template.json)).
-
-## Development & Local Testing
+Requires **Node.js >= 22**. All runtime outputs (`sidecars/agy-context-studio/server.mjs`, `sidecars/agy-context-studio/public/`, `hooks/post-invocation.mjs`, `mcp/server.mjs`) are pre-built and dependency-free.
 
 ```bash
+git clone https://github.com/brhnshn/agy-context-studio.git
+cd agy-context-studio
 npm install
-npm run build        # Typecheck + zero-dep ESM bundles + Vite React UI
-npm test             # Node built-in test runner (core, sidecar, hook, MCP)
-npm run link:plugin  # Link/copy built plugin into ~/.gemini/config/plugins/agy-context-studio
+npm run build
+npm test
+npm run link:plugin
 ```
 
-For full technical specifications and milestones, see [`SPEC.md`](SPEC.md), [`AGENTS.md`](AGENTS.md), [`ROADMAP.md`](ROADMAP.md), and [`CHANGELOG.md`](CHANGELOG.md).
+`npm run link:plugin` links/copies the built plugin into `~/.gemini/config/plugins/agy-context-studio` without touching `~/.gemini/config/config.json`. Restart Antigravity to see **Context Studio** in the auxiliary pane, or launch the standalone sidecar directly for browser testing:
 
-## License
+```bash
+node sidecars/agy-context-studio/server.mjs
+# Open http://127.0.0.1:3847
+```
 
-[MIT](LICENSE)
+---
+
+## Roadmap & Phase 2
+
+See [`ROADMAP.md`](ROADMAP.md) for completed Phase 1 (`v0.1.0`) milestones and upcoming **Phase 2 (`avenoxai/avenoxbeyin`)** integration plans.
+
+## Contributing & License
+
+Contributions are welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md). Released under the [MIT License](LICENSE).

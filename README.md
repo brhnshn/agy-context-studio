@@ -2,10 +2,10 @@
   <img src="assets/logo.svg" alt="agy-context-studio logo" width="64" height="64" />
   <h1>agy-context-studio</h1>
   <p><strong>Zero-token-overhead Context Window Monitor &amp; Manager for Google Antigravity</strong></p>
-  <p><em>Google Antigravity için sıfır token maliyetli canlı Bağlam Penceresi İzleyicisi ve Yöneticisi</em></p>
   <p>
-    <a href="README.tr.md"><strong>🇹🇷 Türkçe Dokümantasyon</strong></a> ·
-    <a href="https://brhnshn.github.io/agy-context-studio/"><strong>Live Showcase</strong></a> ·
+    <strong>English</strong> ·
+    <a href="README.tr.md">Türkçe</a> ·
+    <a href="https://brhnshn.github.io/agy-context-studio/">Live Showcase</a> ·
     <a href="SPEC.md">Technical Spec</a> ·
     <a href="CHANGELOG.md">Changelog</a>
   </p>
@@ -13,13 +13,11 @@
 
 ---
 
-> **Türkçe Özet:** `agy-context-studio`, Google Antigravity (Desktop 2.0, IDE ve CLI) oturumlarındaki gerçek bağlam penceresi doluluğunu, Prompt Cache isabet oranını, bağlamı en çok şişiren araç/dosya adımlarını, alt ajan tokenlarını ve 7 günlük kullanım geçmişini **model bağlamına sıfır token yükü ekleyerek** canlı gösterir. Arayüz ve uyarı kancası dahili **TR / EN** dil desteğine sahiptir; ayrıntılı Türkçe kullanım kılavuzu için **[README.tr.md](README.tr.md)** sayfasına geçebilirsiniz.
-
----
+`agy-context-studio` gives Google Antigravity (Desktop 2.0, IDE, and CLI) users real-time visibility and practical control over their active LLM context window without consuming model tokens to monitor itself.
 
 ## Screenshots
 
-| Overview (English) | Genel Bakış (Türkçe) |
+| Overview (English) | Overview (Turkish) |
 | :---: | :---: |
 | ![Overview EN](docs/screenshots/overview-en.png) | ![Overview TR](docs/screenshots/overview-tr.png) |
 

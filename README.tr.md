@@ -3,8 +3,9 @@
   <h1>agy-context-studio</h1>
   <p><strong>Google Antigravity için Sıfır Token Maliyetli Bağlam Penceresi İzleyicisi ve Yöneticisi</strong></p>
   <p>
-    <a href="README.md"><strong>🇬🇧 English Documentation</strong></a> ·
-    <a href="https://brhnshn.github.io/agy-context-studio/"><strong>Canlı Tanıtım Sitesi</strong></a> ·
+    <a href="README.md">English</a> ·
+    <strong>Türkçe</strong> ·
+    <a href="https://brhnshn.github.io/agy-context-studio/">Tanıtım Sitesi</a> ·
     <a href="SPEC.md">Teknik Şartname</a> ·
     <a href="CHANGELOG.md">Değişiklik Günlüğü</a>
   </p>
@@ -16,9 +17,9 @@
 
 ## Ekran Görüntüleri
 
-| Genel Bakış (Türkçe) | Overview (English) |
+| Genel Bakış (Türkçe) | Genel Bakış (İngilizce) |
 | :---: | :---: |
-| ![Genel Bakış TR](docs/screenshots/overview-tr.png) | ![Overview EN](docs/screenshots/overview-en.png) |
+| ![Genel Bakış TR](docs/screenshots/overview-tr.png) | ![Genel Bakış EN](docs/screenshots/overview-en.png) |
 
 | 7 Günlük Geçmiş | Ayarlar ve Algılanan Modeller |
 | :---: | :---: |
@@ -26,7 +27,7 @@
 
 ---
 
-## Özellikler (3 Modüler Seçenek)
+## Temel Özellikler (3 Modüler Seçenek)
 
 1. **Seçenek 1 — Canlı Sidecar Web Arayüzü (Varsayılan: AÇIK · 0 Token)**
    - **Gerçek Bağlam Doluluğu:** Yerel `transcript.jsonl` dosyalarını bayt konumuyla artımlı okuyarak (`fs.watch` + SSE) gerçek `input_tokens + cache_read_tokens` değerlerini canlı aktarır.
@@ -66,6 +67,10 @@ node sidecars/agy-context-studio/server.mjs
 ```
 
 ---
+
+## Yol Haritası ve Faz 2
+
+Tamamlanan Faz 1 (`v0.1.0`) aşamaları ve yaklaşan **Faz 2 (`avenoxai/avenoxbeyin`)** entegrasyon planı için [`ROADMAP.md`](ROADMAP.md) dosyasına göz atabilirsiniz.
 
 ## Katkı ve Lisans
 

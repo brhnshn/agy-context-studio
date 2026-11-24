@@ -1,14 +1,20 @@
 const COPY = {
   en: {
-    'nav.github': 'GitHub',
-    'hero.eyebrow': 'Google Antigravity Plugin · Zero Token Overhead',
-    'hero.title':
-      'See your exact context fill, prompt cache efficiency, and context bloaters in real time.',
-    'hero.subtitle':
-      'Local-first, zero-runtime-dependency Node ESM & React Sidecar plugin for Antigravity Desktop, IDE, and CLI.',
+    'nav.preview': 'Preview',
+    'nav.modules': 'Modules',
+    'nav.architecture': 'Architecture',
+    'hero.eyebrow': 'Open-Source Antigravity Plugin · Zero Token Overhead',
+    'hero.titleBright': 'Context visibility',
+    'hero.titleMuted': 'engineered for Antigravity sessions.',
+    'hero.lead':
+      'Track exact token fill, prompt cache efficiency, context bloaters, and subagent usage locally without spending a single model token.',
+    'hero.cta': 'Explore on GitHub',
     'hero.copy': 'Copy',
     'hero.copied': 'Copied',
-    'showcase.title': 'Live Interface Preview',
+    'kpi.fillLabel': 'Context Fill',
+    'kpi.cacheLabel': 'Cache Hit',
+    'kpi.overheadLabel': 'Monitor Overhead',
+    'kpi.historyLabel': '7-Day Volume',
     'showcase.tabEn': 'Overview (EN)',
     'showcase.tabTr': 'Overview (TR)',
     'showcase.tabHistory': '7-Day History',
@@ -21,31 +27,48 @@ const COPY = {
       'Local 7-day token volume and prompt cache hit savings aggregated across Antigravity sessions.',
     'showcase.captionSettings':
       'Configurable PostInvocation warning thresholds, EN/TR switcher, real detected model limits, and opt-in MCP App guide.',
-    'options.title': '3 Modular Options',
-    'options.opt1Badge': 'Default ON · 0 Tokens',
-    'options.opt1Title': '1. Live Sidecar Web UI',
-    'options.opt1Desc':
-      'Watches transcript.jsonl incrementally by byte offset and streams updates over SSE. Includes exact token fill, prompt cache hits, subagent tracking, and 7-day history.',
-    'options.opt2Badge': 'Toggleable · 0 Model Tokens',
-    'options.opt2Title': '2. PostInvocation Threshold Hook',
-    'options.opt2Desc':
-      'Checks configured warning (70%) and critical (85%) thresholds after each turn and emits a user-only markdown card without adding tokens to the model context.',
-    'options.opt3Badge': 'Sidecar + Opt-in MCP',
-    'options.opt3Title': '3. Interactive Context Manager',
-    'options.opt3Desc':
-      'Top toolbar Quick Actions trigger Smart Handoff, Compact Checkpoint, and Markdown Report export. Includes an optional opt-in MCP App (disabled by default).',
-    'arch.title': 'How It Works (Zero Overhead)'
+    'arch.titleBright': 'Local-first ingestion',
+    'arch.titleMuted': 'with modular output layers.',
+    'arch.leftKicker': 'DISK SOURCE',
+    'arch.leftSub': 'Byte-offset incremental',
+    'arch.rightKicker': 'SURFACES',
+    'arch.rightSub': 'Zero background cost',
+    'modules.m1Tag': 'OPTION 01 · DEFAULT ON',
+    'modules.m1Title': 'Live Sidecar Web UI',
+    'modules.m1Desc':
+      'Watches transcripts incrementally via fs.watch and streams exact token counts, cache hit rates, subagents, and 7-day history over SSE.',
+    'modules.m2Tag': 'OPTION 02 · TOGGLEABLE',
+    'modules.m2Title': 'PostInvocation Hook',
+    'modules.m2Desc':
+      'Evaluates 70% warning and 85% critical thresholds after each turn and emits user-only markdown cards with empty systemMessage.',
+    'modules.m3Tag': 'OPTION 03 · 3A + OPT-IN 3B',
+    'modules.m3Title': 'Context Manager',
+    'modules.m3Desc':
+      'Top toolbar triggers Smart Handoff, Compact Checkpoint, and Markdown Report export. Optional MCP App stays off by default.',
+    'metrics.u1': 'tok',
+    'metrics.l1': 'Background monitoring token overhead',
+    'metrics.u2': 'layers',
+    'metrics.l2': 'Sidecar UI, PostInvocation hook, opt-in MCP',
+    'metrics.u3': 'langs',
+    'metrics.l3': 'Built-in English and Turkish UI & alerts',
+    'metrics.l4': 'Local-first ingestion with zero network calls'
   },
   tr: {
-    'nav.github': 'GitHub',
-    'hero.eyebrow': 'Google Antigravity Eklentisi · Sıfır Token Maliyeti',
-    'hero.title':
-      'Bağlam doluluğunu, önbellek isabetini ve en çok yer kaplayan adımları canlı görün.',
-    'hero.subtitle':
-      'Antigravity Desktop, IDE ve CLI için yerel çalışan, harici bağımlılıksız Node ESM & React Sidecar eklentisi.',
+    'nav.preview': 'Önizleme',
+    'nav.modules': 'Modüller',
+    'nav.architecture': 'Mimari',
+    'hero.eyebrow': 'Açık Kaynak Antigravity Eklentisi · Sıfır Token Maliyeti',
+    'hero.titleBright': 'Bağlam görünürlüğü',
+    'hero.titleMuted': 'Antigravity oturumları için tasarlandı.',
+    'hero.lead':
+      'Gerçek token doluluğunu, Prompt Cache verimliliğini, bağlamı şişiren adımları ve alt ajan kullanımını tek bir model tokenı harcamadan yerelde izleyin.',
+    'hero.cta': 'GitHub’da İncele',
     'hero.copy': 'Kopyala',
     'hero.copied': 'Kopyalandı',
-    'showcase.title': 'Canlı Arayüz Önizlemesi',
+    'kpi.fillLabel': 'Bağlam Doluluğu',
+    'kpi.cacheLabel': 'Önbellek İsabeti',
+    'kpi.overheadLabel': 'İzleme Maliyeti',
+    'kpi.historyLabel': '7 Günlük Hacim',
     'showcase.tabEn': 'Genel Bakış (EN)',
     'showcase.tabTr': 'Genel Bakış (TR)',
     'showcase.tabHistory': '7 Günlük Geçmiş',
@@ -58,20 +81,31 @@ const COPY = {
       'Yerel Antigravity oturumlarından derlenen 7 günlük token hacmi ve önbellek tasarruf özeti.',
     'showcase.captionSettings':
       'Ayarlanabilir PostInvocation eşikleri, EN/TR dil seçici, oturumlardan algılanan gerçek model limitleri ve isteğe bağlı MCP App rehberi.',
-    'options.title': '3 Modüler Seçenek',
-    'options.opt1Badge': 'Varsayılan AÇIK · 0 Token',
-    'options.opt1Title': '1. Canlı Sidecar Web Arayüzü',
-    'options.opt1Desc':
-      'transcript.jsonl dosyasını bayt konumuyla artımlı okur ve SSE ile anlık yayınlar. Gerçek doluluk, önbellek isabeti, alt ajanlar ve 7 günlük geçmişi gösterir.',
-    'options.opt2Badge': 'Aç/Kapa · 0 Model Token',
-    'options.opt2Title': '2. PostInvocation Eşik Kancası',
-    'options.opt2Desc':
-      'Her tur sonrası uyarı (%70) ve kritik (%85) eşiklerini denetler; model bağlamına tek bir token eklemeden yalnızca kullanıcıya markdown uyarı kartı gösterir.',
-    'options.opt3Badge': 'Sidecar + İsteğe Bağlı MCP',
-    'options.opt3Title': '3. Etkileşimli Bağlam Yöneticisi',
-    'options.opt3Desc':
-      'Üst araç çubuğundan tek tıkla Akıllı Devir, Özet/Sıkıştır ve Markdown Raporu başlatır. İsteğe bağlı MCP App modülü varsayılan olarak kapalıdır.',
-    'arch.title': 'Nasıl Çalışır (Sıfır Yük)'
+    'arch.titleBright': 'Yerel öncelikli okuma',
+    'arch.titleMuted': 've modüler çıktı katmanları.',
+    'arch.leftKicker': 'DİSK KAYNAĞI',
+    'arch.leftSub': 'Bayt konumuna göre artımlı',
+    'arch.rightKicker': 'ARAYÜZLER',
+    'arch.rightSub': 'Sıfır arka plan maliyeti',
+    'modules.m1Tag': 'SEÇENEK 01 · VARSAYILAN AÇIK',
+    'modules.m1Title': 'Canlı Sidecar Web Arayüzü',
+    'modules.m1Desc':
+      'transcript.jsonl dosyasını fs.watch ile artımlı izler; gerçek token doluluğunu, önbellek isabetini, alt ajanları ve 7 günlük geçmişi SSE ile aktarır.',
+    'modules.m2Tag': 'SEÇENEK 02 · AÇ / KAPA',
+    'modules.m2Title': 'PostInvocation Kancası',
+    'modules.m2Desc':
+      'Her tur sonrası %70 uyarı ve %85 kritik eşikleri denetler; boş systemMessage ile model bağlamına sıfır yük ekleyerek kullanıcıya kart gösterir.',
+    'modules.m3Tag': 'SEÇENEK 03 · 3A + İSTEĞE BAĞLI 3B',
+    'modules.m3Title': 'Bağlam Yöneticisi',
+    'modules.m3Desc':
+      'Üst araç çubuğu Akıllı Devir, Özet/Sıkıştır ve Markdown Raporu başlatır. İsteğe bağlı MCP App modülü varsayılan olarak kapalıdır.',
+    'metrics.u1': 'tok',
+    'metrics.l1': 'Arka plan izleme token maliyeti',
+    'metrics.u2': 'katman',
+    'metrics.l2': 'Sidecar UI, PostInvocation kancası, isteğe bağlı MCP',
+    'metrics.u3': 'dil',
+    'metrics.l3': 'Dahili İngilizce ve Türkçe arayüz ve uyarılar',
+    'metrics.l4': 'Dış ağ çağrısı olmayan tamamen yerel okuma'
   }
 };
 
@@ -149,6 +183,29 @@ if (copyBtn && installCmd) {
       // Ignore clipboard permission denials
     }
   });
+}
+
+// Scroll-reveal for lower telemetry strip and diagram
+const revealNodes = document.querySelectorAll('[data-reveal]');
+if ('IntersectionObserver' in window && revealNodes.length > 0) {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      }
+    },
+    { threshold: 0.12 }
+  );
+  for (const node of revealNodes) {
+    observer.observe(node);
+  }
+} else {
+  for (const node of revealNodes) {
+    node.classList.add('is-visible');
+  }
 }
 
 applyTranslations();

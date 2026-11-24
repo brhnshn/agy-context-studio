@@ -1,0 +1,16 @@
+# agy-context-studio
+
+> Zero-token-overhead Context Window Monitor & Manager plugin for Google Antigravity (Desktop 2.0, IDE, and CLI).
+
+- Repository: https://github.com/brhnshn/agy-context-studio
+- Showcase: https://brhnshn.github.io/agy-context-studio/
+- English Docs: https://github.com/brhnshn/agy-context-studio/blob/main/README.md
+- Turkish Docs: https://github.com/brhnshn/agy-context-studio/blob/main/README.tr.md
+- Technical Spec: https://github.com/brhnshn/agy-context-studio/blob/main/SPEC.md
+
+## Capabilities
+- Incremental byte-offset reader for Antigravity `transcript.jsonl` logs (0 model tokens)
+- Exact context fill (`input_tokens + cache_read_tokens`), prompt cache hit rate, proportional breakdown (`~estimate`), and deduplicated top bloaters
+- Subagent token summary (`invoke_subagent`) and 7-day local usage history
+- Toggleable `PostInvocation` warning hook emitting user-only markdown cards (`systemMessage: ""`)
+- Interactive top Quick Actions (`Smart Handoff`, `Compact Checkpoint`, `Copy Markdown Report`) and opt-in MCP App (`get_context_health`)

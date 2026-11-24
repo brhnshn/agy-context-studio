@@ -3,6 +3,8 @@ import type { LanguageCode, ModelOverride, PluginConfig } from '../../core/types
 import type { TranslationDict } from '../i18n/en.js';
 import { copyText } from '../services/sidecarBridge.js';
 import { CheckIcon, CopyIcon, SettingsIcon } from '../utils/icons.js';
+import { CustomSelect } from './CustomSelect.js';
+import { NumberStepper } from './NumberStepper.js';
 
 interface SettingsTabProps {
   t: TranslationDict;
@@ -23,11 +25,16 @@ const MCP_CONFIG_SNIPPET = JSON.stringify(
   2
 );
 
+const LANGUAGE_OPTIONS = [
+  { value: 'en', label: 'English', meta: 'EN' },
+  { value: 'tr', label: 'Türkçe', meta: 'TR' }
+];
+
 export function SettingsTab({ t, config, onSaveConfig }: SettingsTabProps) {
   const [language, setLanguage] = useState<LanguageCode>(config.language);
   const [hookEnabled, setHookEnabled] = useState(config.hookEnabled);
-  const [warningPct, setWarningPct] = useState(String(config.warningThresholdPct));
-  const [criticalPct, setCriticalPct] = useState(String(config.criticalThresholdPct));
+  const [warningPct, setWarningPct] = useState(config.warningThresholdPct);
+  const [criticalPct, setCriticalPct] = useState(config.criticalThresholdPct);
   const [overrides, setOverrides] = useState<Record<string, ModelOverride>>(config.modelOverrides);
   const [newPattern, setNewPattern] = useState('');
   const [newLimit, setNewLimit] = useState('');
@@ -37,8 +44,8 @@ export function SettingsTab({ t, config, onSaveConfig }: SettingsTabProps) {
   useEffect(() => {
     setLanguage(config.language);
     setHookEnabled(config.hookEnabled);
-    setWarningPct(String(config.warningThresholdPct));
-    setCriticalPct(String(config.criticalThresholdPct));
+    setWarningPct(config.warningThresholdPct);
+    setCriticalPct(config.criticalThresholdPct);
     setOverrides(config.modelOverrides);
   }, [config]);
 
@@ -47,14 +54,26 @@ export function SettingsTab({ t, config, onSaveConfig }: SettingsTabProps) {
     setTimeout(() => setStatusMsg(null), 2500);
   };
 
+  const handleWarningChange = (nextWarn: number) => {
+    setWarningPct(nextWarn);
+    if (criticalPct <= nextWarn) {
+      setCriticalPct(Math.min(99, nextWarn + 5));
+    }
+  };
+
+  const handleCriticalChange = (nextCrit: number) => {
+    const minAllowed = Math.min(99, warningPct + 5);
+    setCriticalPct(Math.max(minAllowed, nextCrit));
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
       await onSaveConfig({
         language,
         hookEnabled,
-        warningThresholdPct: Number(warningPct) || config.warningThresholdPct,
-        criticalThresholdPct: Number(criticalPct) || config.criticalThresholdPct,
+        warningThresholdPct: warningPct,
+        criticalThresholdPct: criticalPct,
         modelOverrides: overrides
       });
       showStatus(t.settings.saved);
@@ -93,6 +112,9 @@ export function SettingsTab({ t, config, onSaveConfig }: SettingsTabProps) {
   };
 
   const overrideEntries = Object.entries(overrides);
+  const safeZoneWidth = Math.max(0, Math.min(100, warningPct));
+  const warnZoneWidth = Math.max(0, Math.min(100 - safeZoneWidth, criticalPct - warningPct));
+  const critZoneWidth = Math.max(0, 100 - safeZoneWidth - warnZoneWidth);
 
   return (
     <div className="cs-panel">
@@ -110,61 +132,65 @@ export function SettingsTab({ t, config, onSaveConfig }: SettingsTabProps) {
           )}
         </div>
 
-        <div className="cs-form-row">
-          <label htmlFor="cs-lang-select">{t.settings.language}</label>
-          <select
-            id="cs-lang-select"
-            className="cs-select"
-            value={language}
-            onChange={(e) => setLanguage(e.target.value as LanguageCode)}
-          >
-            <option value="en">English (EN)</option>
-            <option value="tr">Türkçe (TR)</option>
-          </select>
-        </div>
-
-        <div className="cs-form-row">
-          <label htmlFor="cs-hook-toggle">{t.settings.hookEnabled}</label>
-          <label className="cs-switch">
-            <input
-              id="cs-hook-toggle"
-              type="checkbox"
-              checked={hookEnabled}
-              onChange={(e) => setHookEnabled(e.target.checked)}
+        <div className="cs-settings-grid">
+          <div className="cs-setting-tile">
+            <span className="cs-setting-label">{t.settings.language}</span>
+            <CustomSelect
+              id="cs-lang-select"
+              ariaLabel={t.settings.language}
+              value={language}
+              options={LANGUAGE_OPTIONS}
+              onChange={(val) => setLanguage(val as LanguageCode)}
+              align="right"
             />
-            <span className="cs-switch-track" />
-          </label>
+          </div>
+
+          <div className="cs-setting-tile">
+            <label htmlFor="cs-hook-toggle" className="cs-setting-label">
+              {t.settings.hookEnabled}
+            </label>
+            <label className="cs-switch">
+              <input
+                id="cs-hook-toggle"
+                type="checkbox"
+                checked={hookEnabled}
+                onChange={(e) => setHookEnabled(e.target.checked)}
+              />
+              <span className="cs-switch-track" />
+            </label>
+          </div>
         </div>
 
-        <div className="cs-form-row">
-          <label htmlFor="cs-warn-pct">{t.settings.warningPct}</label>
-          <input
+        <div className="cs-settings-grid">
+          <NumberStepper
             id="cs-warn-pct"
-            type="number"
-            min={10}
-            max={98}
-            className="cs-input"
-            style={{ width: '80px' }}
+            label={t.settings.warningPct}
             value={warningPct}
-            onChange={(e) => setWarningPct(e.target.value)}
+            min={10}
+            max={94}
+            step={5}
+            suffix="%"
+            onChange={handleWarningChange}
           />
-        </div>
-
-        <div className="cs-form-row">
-          <label htmlFor="cs-crit-pct">{t.settings.criticalPct}</label>
-          <input
+          <NumberStepper
             id="cs-crit-pct"
-            type="number"
+            label={t.settings.criticalPct}
+            value={criticalPct}
             min={15}
             max={99}
-            className="cs-input"
-            style={{ width: '80px' }}
-            value={criticalPct}
-            onChange={(e) => setCriticalPct(e.target.value)}
+            step={5}
+            suffix="%"
+            onChange={handleCriticalChange}
           />
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
+        <div className="cs-threshold-preview" aria-hidden="true">
+          <div className="cs-zone-ok" style={{ width: `${safeZoneWidth}%` }} />
+          <div className="cs-zone-warn" style={{ width: `${warnZoneWidth}%` }} />
+          <div className="cs-zone-crit" style={{ width: `${critZoneWidth}%` }} />
+        </div>
+
+        <div className="cs-settings-footer">
           <button
             type="button"
             className="cs-btn cs-btn-primary"
@@ -181,19 +207,17 @@ export function SettingsTab({ t, config, onSaveConfig }: SettingsTabProps) {
           <span className="cs-card-title">{t.settings.overridesTitle}</span>
         </div>
 
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        <div className="cs-override-form">
           <input
             type="text"
-            className="cs-input"
-            style={{ flex: 1, minWidth: '140px' }}
+            className="cs-input cs-override-pattern"
             placeholder={t.settings.modelPattern}
             value={newPattern}
             onChange={(e) => setNewPattern(e.target.value)}
           />
           <input
             type="number"
-            className="cs-input"
-            style={{ width: '130px' }}
+            className="cs-input cs-override-limit"
             placeholder={t.settings.contextLimit}
             value={newLimit}
             onChange={(e) => setNewLimit(e.target.value)}
@@ -204,7 +228,7 @@ export function SettingsTab({ t, config, onSaveConfig }: SettingsTabProps) {
         </div>
 
         {overrideEntries.length === 0 ? (
-          <div className="cs-empty">{t.settings.noOverrides}</div>
+          <div className="cs-empty-compact">{t.settings.noOverrides}</div>
         ) : (
           <div className="cs-list">
             {overrideEntries.map(([pattern, entry]) => (
@@ -234,7 +258,7 @@ export function SettingsTab({ t, config, onSaveConfig }: SettingsTabProps) {
             {t.settings.copyMcpConfig}
           </button>
         </div>
-        <div style={{ fontSize: '12px', color: 'var(--cs-muted)' }}>{t.settings.mcpDescription}</div>
+        <div className="cs-muted-note">{t.settings.mcpDescription}</div>
         <pre className="cs-code">{MCP_CONFIG_SNIPPET}</pre>
       </section>
     </div>

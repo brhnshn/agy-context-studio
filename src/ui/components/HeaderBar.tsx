@@ -2,6 +2,7 @@ import type { LanguageCode } from '../../core/types.js';
 import type { TranslationDict } from '../i18n/en.js';
 import type { ConversationListItem } from '../services/apiClient.js';
 import { BrandLogoIcon, RefreshIcon } from '../utils/icons.js';
+import { CustomSelect } from './CustomSelect.js';
 
 interface HeaderBarProps {
   t: TranslationDict;
@@ -26,6 +27,11 @@ export function HeaderBar({
   onSetLanguage,
   onRefresh
 }: HeaderBarProps) {
+  const conversationOptions = conversations.map((item) => ({
+    value: item.conversationId,
+    label: item.conversationId.slice(0, 8)
+  }));
+
   return (
     <header className="cs-header">
       <div className="cs-brand">
@@ -37,19 +43,15 @@ export function HeaderBar({
         </span>
       </div>
       <div className="cs-header-controls">
-        {conversations.length > 0 && (
-          <select
-            className="cs-select cs-select-conv"
-            aria-label="Conversation"
+        {conversationOptions.length > 0 && (
+          <CustomSelect
+            ariaLabel="Conversation"
             value={selectedConversationId}
-            onChange={(e) => onSelectConversation(e.target.value)}
-          >
-            {conversations.map((item) => (
-              <option key={item.conversationId} value={item.conversationId}>
-                {item.conversationId.slice(0, 8)}
-              </option>
-            ))}
-          </select>
+            options={conversationOptions}
+            onChange={onSelectConversation}
+            mono
+            align="right"
+          />
         )}
         <div className="cs-lang-switch" role="group" aria-label={t.settings.language}>
           <button

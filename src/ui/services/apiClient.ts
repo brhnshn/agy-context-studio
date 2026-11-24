@@ -1,4 +1,9 @@
-import type { ContextSnapshot, PluginConfig, UsageHistory } from '../../core/types.js';
+import type {
+  ContextSnapshot,
+  ModelOptionItem,
+  PluginConfig,
+  UsageHistory
+} from '../../core/types.js';
 
 export interface ConversationListItem {
   conversationId: string;
@@ -28,6 +33,11 @@ export function fetchState(conversationId?: string | null): Promise<ContextSnaps
 export async function fetchConversations(): Promise<ConversationListItem[]> {
   const payload = await requestJson<{ conversations?: ConversationListItem[] }>('./api/conversations');
   return Array.isArray(payload.conversations) ? payload.conversations : [];
+}
+
+export async function fetchModels(): Promise<ModelOptionItem[]> {
+  const payload = await requestJson<{ models?: ModelOptionItem[] }>('./api/models');
+  return Array.isArray(payload.models) ? payload.models : [];
 }
 
 export function fetchHistory(days = 7): Promise<UsageHistory> {

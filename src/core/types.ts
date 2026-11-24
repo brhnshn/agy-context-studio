@@ -2,6 +2,13 @@ export type LanguageCode = 'en' | 'tr';
 
 export type CategoryKey = 'user' | 'assistant' | 'thinking' | 'tools' | 'system';
 
+export type StepKind = 'tool_call' | 'tool_result' | 'thinking' | 'user' | 'assistant' | 'system';
+
+export interface ToolCountSummary {
+  name: string;
+  count: number;
+}
+
 export interface ToolCallInvocation {
   name: string;
   args?: Record<string, unknown>;
@@ -28,8 +35,11 @@ export interface RawTranscriptStep {
 export interface ParsedStepSummary {
   stepIndex: number;
   category: CategoryKey;
+  stepKind?: StepKind;
   label: string;
   toolName?: string;
+  toolCounts?: ToolCountSummary[];
+  targets?: string[];
   bytes: number;
   createdAt?: string;
 }
@@ -103,12 +113,22 @@ export interface CategoryBreakdown {
 export interface BloaterItem {
   stepIndex: number;
   category: CategoryKey;
+  stepKind?: StepKind;
   label: string;
   toolName?: string;
+  toolCounts?: ToolCountSummary[];
+  targets?: string[];
   bytes: number;
   estimatedTokens: number;
   sharePct: number;
   createdAt?: string;
+}
+
+export interface ModelOptionItem {
+  id: string;
+  contextLimit: number | null;
+  compactionThresholdPct: number | null;
+  source: 'override' | 'catalog' | 'detected';
 }
 
 export interface SubagentSummary {

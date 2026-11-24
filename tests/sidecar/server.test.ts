@@ -69,10 +69,18 @@ test('Sidecar server serves health, conversations, state, history, settings, and
   assert.equal(htmlRes.status, 200);
   assert.match(await htmlRes.text(), /OK/);
 
-  // 2. Conversations & State
+  // 2. Conversations, Models & State
   const convRes = await fetch(`${baseUrl}/api/conversations`);
   const convJson = (await convRes.json()) as { conversations: Array<{ conversationId: string }> };
   assert.equal(convJson.conversations[0]?.conversationId, convId);
+
+  const modelsRes = await fetch(`${baseUrl}/api/models`);
+  assert.equal(modelsRes.status, 200);
+  const modelsJson = (await modelsRes.json()) as {
+    models: Array<{ id: string; contextLimit: number | null; source: string }>;
+  };
+  assert.ok(modelsJson.models.some((m) => m.id === 'gemini-4-neon-medium' && m.source === 'detected'));
+  assert.ok(modelsJson.models.some((m) => m.id === 'claude-sonnet-4'));
 
   const stateRes = await fetch(`${baseUrl}/api/state?conversationId=${convId}`);
   const stateJson = (await stateRes.json()) as { totalInputTokens: number; usagePct: number };

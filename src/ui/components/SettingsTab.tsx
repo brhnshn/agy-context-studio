@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import type { LanguageCode, ModelOverride, PluginConfig } from '../../core/types.js';
+import type { LanguageCode, ModelOptionItem, ModelOverride, PluginConfig } from '../../core/types.js';
 import type { TranslationDict } from '../i18n/en.js';
+import { fetchModels } from '../services/apiClient.js';
 import { copyText } from '../services/sidecarBridge.js';
+import { formatTokens } from '../utils/format.js';
 import { CheckIcon, CopyIcon, SettingsIcon } from '../utils/icons.js';
 import { CustomSelect } from './CustomSelect.js';
 import { NumberStepper } from './NumberStepper.js';
@@ -11,6 +13,8 @@ interface SettingsTabProps {
   config: PluginConfig;
   onSaveConfig: (next: Partial<PluginConfig>) => Promise<void>;
 }
+
+const CUSTOM_MODEL_VALUE = '__custom__';
 
 const MCP_CONFIG_SNIPPET = JSON.stringify(
   {
@@ -36,7 +40,9 @@ export function SettingsTab({ t, config, onSaveConfig }: SettingsTabProps) {
   const [warningPct, setWarningPct] = useState(config.warningThresholdPct);
   const [criticalPct, setCriticalPct] = useState(config.criticalThresholdPct);
   const [overrides, setOverrides] = useState<Record<string, ModelOverride>>(config.modelOverrides);
-  const [newPattern, setNewPattern] = useState('');
+  const [models, setModels] = useState<ModelOptionItem[]>([]);
+  const [selectedModel, setSelectedModel] = useState<string>(CUSTOM_MODEL_VALUE);
+  const [customPattern, setCustomPattern] = useState('');
   const [newLimit, setNewLimit] = useState('');
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -48,6 +54,28 @@ export function SettingsTab({ t, config, onSaveConfig }: SettingsTabProps) {
     setCriticalPct(config.criticalThresholdPct);
     setOverrides(config.modelOverrides);
   }, [config]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchModels()
+      .then((items) => {
+        if (cancelled) {
+          return;
+        }
+        setModels(items);
+        if (items.length > 0) {
+          const first = items[0]!;
+          setSelectedModel(first.id);
+          if (first.contextLimit) {
+            setNewLimit(String(first.contextLimit));
+          }
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const showStatus = (msg: string) => {
     setStatusMsg(msg);
@@ -64,6 +92,20 @@ export function SettingsTab({ t, config, onSaveConfig }: SettingsTabProps) {
   const handleCriticalChange = (nextCrit: number) => {
     const minAllowed = Math.min(99, warningPct + 5);
     setCriticalPct(Math.max(minAllowed, nextCrit));
+  };
+
+  const handleModelSelect = (nextValue: string) => {
+    setSelectedModel(nextValue);
+    if (nextValue === CUSTOM_MODEL_VALUE) {
+      setNewLimit('');
+      return;
+    }
+    const found = models.find((item) => item.id === nextValue);
+    if (found?.contextLimit) {
+      setNewLimit(String(found.contextLimit));
+    } else {
+      setNewLimit('');
+    }
   };
 
   const handleSave = async () => {
@@ -83,7 +125,8 @@ export function SettingsTab({ t, config, onSaveConfig }: SettingsTabProps) {
   };
 
   const handleAddOverride = () => {
-    const pattern = newPattern.trim();
+    const pattern =
+      selectedModel === CUSTOM_MODEL_VALUE ? customPattern.trim() : selectedModel.trim();
     const limit = Number(newLimit);
     if (!pattern || !Number.isFinite(limit) || limit <= 0) {
       return;
@@ -92,8 +135,9 @@ export function SettingsTab({ t, config, onSaveConfig }: SettingsTabProps) {
       ...prev,
       [pattern]: { contextLimit: Math.round(limit) }
     }));
-    setNewPattern('');
-    setNewLimit('');
+    if (selectedModel === CUSTOM_MODEL_VALUE) {
+      setCustomPattern('');
+    }
   };
 
   const handleRemoveOverride = (pattern: string) => {
@@ -110,6 +154,18 @@ export function SettingsTab({ t, config, onSaveConfig }: SettingsTabProps) {
       showStatus(t.settings.mcpCopied);
     }
   };
+
+  const modelSelectOptions = [
+    ...models.map((item) => ({
+      value: item.id,
+      label: item.id,
+      meta: item.contextLimit ? formatTokens(item.contextLimit) : '?'
+    })),
+    {
+      value: CUSTOM_MODEL_VALUE,
+      label: t.settings.customModelOption
+    }
+  ];
 
   const overrideEntries = Object.entries(overrides);
   const safeZoneWidth = Math.max(0, Math.min(100, warningPct));
@@ -208,17 +264,30 @@ export function SettingsTab({ t, config, onSaveConfig }: SettingsTabProps) {
         </div>
 
         <div className="cs-override-form">
-          <input
-            type="text"
-            className="cs-input cs-override-pattern"
-            placeholder={t.settings.modelPattern}
-            value={newPattern}
-            onChange={(e) => setNewPattern(e.target.value)}
-          />
+          <div className="cs-override-select">
+            <CustomSelect
+              id="cs-model-override-select"
+              ariaLabel={t.settings.selectModel}
+              value={selectedModel}
+              options={modelSelectOptions}
+              onChange={handleModelSelect}
+              mono
+              align="left"
+            />
+          </div>
+          {selectedModel === CUSTOM_MODEL_VALUE && (
+            <input
+              type="text"
+              className="cs-input cs-override-pattern"
+              placeholder={t.settings.modelPattern}
+              value={customPattern}
+              onChange={(e) => setCustomPattern(e.target.value)}
+            />
+          )}
           <input
             type="number"
             className="cs-input cs-override-limit"
-            placeholder={t.settings.contextLimit}
+            placeholder={t.settings.limitPlaceholder}
             value={newLimit}
             onChange={(e) => setNewLimit(e.target.value)}
           />

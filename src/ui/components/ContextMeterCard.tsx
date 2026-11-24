@@ -84,14 +84,14 @@ export function ContextMeterCard({ t, snapshot, config }: ContextMeterCardProps)
               <div
                 className="cs-meter-cached"
                 style={{ width: `${cachedShare}%`, backgroundColor: fillColor }}
-                title={`${formatExactNumber(snapshot.cacheReadTokens)} cached`}
+                title={`${formatExactNumber(snapshot.cacheReadTokens)} ${t.meter.cached}`}
               />
             )}
             {uncachedShare > 0 && (
               <div
                 className="cs-meter-uncached"
                 style={{ width: `${uncachedShare}%`, backgroundColor: fillColor }}
-                title={`${formatExactNumber(snapshot.uncachedInputTokens)} uncached`}
+                title={`${formatExactNumber(snapshot.uncachedInputTokens)} ${t.meter.uncached}`}
               />
             )}
           </div>
@@ -105,7 +105,7 @@ export function ContextMeterCard({ t, snapshot, config }: ContextMeterCardProps)
         </div>
         <div className="cs-meter-caption">
           <span>
-            {formatTokens(snapshot.cacheReadTokens)} cached · {formatTokens(snapshot.uncachedInputTokens)} uncached
+            {formatTokens(snapshot.cacheReadTokens)} {t.meter.cached} · {formatTokens(snapshot.uncachedInputTokens)} {t.meter.uncached}
           </span>
           {snapshot.compactionPct !== null && (
             <span>

@@ -85,8 +85,11 @@ export function rankTopBloaters(
     return {
       stepIndex: step.stepIndex,
       category: step.category,
+      stepKind: step.stepKind,
       label: step.label,
       toolName: step.toolName,
+      toolCounts: step.toolCounts,
+      targets: step.targets,
       bytes: step.bytes,
       estimatedTokens: Math.round(safeTokens * ratio),
       sharePct: Number((ratio * 100).toFixed(1)),

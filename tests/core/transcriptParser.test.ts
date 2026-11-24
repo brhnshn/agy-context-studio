@@ -245,3 +245,44 @@ test('IncrementalTranscriptReader ignores conversationId snippets inside non-sub
   assert.ok(state);
   assert.equal(state.subagentRefs.length, 0);
 });
+
+test('IncrementalTranscriptReader deduplicates repeated tool calls and extracts targets', async (t) => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'agy-ctx-tools-'));
+  t.after(async () => {
+    await fs.rm(dir, { recursive: true, force: true });
+  });
+
+  const filePath = path.join(dir, 'transcript.jsonl');
+  await fs.writeFile(
+    filePath,
+    jsonl([
+      {
+        step_index: 0,
+        type: 'PLANNER_RESPONSE',
+        created_at: '2026-11-24T20:00:00Z',
+        model: 'gemini-4-hydrogen-high',
+        input_tokens: 15000,
+        cache_read_tokens: 0,
+        output_tokens: 200,
+        tool_calls: [
+          { name: 'write_file', args: { Path: 'C:/repo/src/SettingsTab.tsx' } },
+          { name: 'write_file', args: { Path: 'C:/repo/src/styles.css' } },
+          { name: 'write_file', args: { Path: 'C:/repo/src/App.tsx' } },
+          { name: 'edit_file', args: { Path: 'C:/repo/src/en.ts' } }
+        ]
+      }
+    ]),
+    'utf8'
+  );
+
+  const state = await parseTranscriptFile(filePath);
+  assert.ok(state);
+  const toolStep = state.steps.find((s) => s.stepKind === 'tool_call');
+  assert.ok(toolStep);
+  assert.deepEqual(toolStep.toolCounts, [
+    { name: 'write_file', count: 3 },
+    { name: 'edit_file', count: 1 }
+  ]);
+  assert.deepEqual(toolStep.targets, ['SettingsTab.tsx', 'styles.css']);
+  assert.equal(toolStep.label, 'write_file ×3, edit_file (SettingsTab.tsx, styles.css)');
+});

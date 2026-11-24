@@ -4,11 +4,14 @@ import path from 'node:path';
 import {
   aggregateUsageHistory,
   buildContextSnapshot,
+  getBuiltinModelCatalog,
   type IncrementalTranscriptReader,
   listConversationEntries,
+  type ModelOptionItem,
   type PluginConfig,
   readPluginConfig,
   resolveAntigravityHome,
+  resolveModelLimit,
   resolvePluginDataDir,
   writePluginConfig
 } from '../core/index.js';
@@ -161,6 +164,59 @@ export async function handleSidecarRequest(
   if (method === 'GET' && pathname === '/api/conversations') {
     const conversations = await listConversationEntries(ctx.antigravityHome);
     sendJson(res, 200, { conversations });
+    return;
+  }
+
+  if (method === 'GET' && pathname === '/api/models') {
+    const [config, entries] = await Promise.all([
+      readPluginConfig(ctx.pluginDataDir),
+      listConversationEntries(ctx.antigravityHome)
+    ]);
+
+    const seen = new Map<string, ModelOptionItem>();
+
+    // 1. Models detected in the 8 most recent sessions
+    for (const entry of entries.slice(0, 8)) {
+      const parsed = await ctx.reader.readIncremental(entry.transcriptPath);
+      if (parsed?.model) {
+        const resolved = resolveModelLimit(parsed.model, config.modelOverrides);
+        if (!seen.has(parsed.model)) {
+          seen.set(parsed.model, {
+            id: parsed.model,
+            contextLimit: resolved.contextLimit,
+            compactionThresholdPct: resolved.compactionThresholdPct,
+            source: resolved.source === 'override' ? 'override' : 'detected'
+          });
+        }
+      }
+    }
+
+    // 2. Configured overrides
+    for (const [pattern, override] of Object.entries(config.modelOverrides)) {
+      if (!seen.has(pattern)) {
+        seen.set(pattern, {
+          id: pattern,
+          contextLimit: override.contextLimit,
+          compactionThresholdPct: override.compactionThresholdPct ?? 85,
+          source: 'override'
+        });
+      }
+    }
+
+    // 3. Built-in model catalog entries
+    for (const entry of getBuiltinModelCatalog()) {
+      if (!seen.has(entry.pattern)) {
+        const resolved = resolveModelLimit(entry.pattern, config.modelOverrides);
+        seen.set(entry.pattern, {
+          id: entry.pattern,
+          contextLimit: resolved.contextLimit ?? entry.contextLimit,
+          compactionThresholdPct: resolved.compactionThresholdPct ?? entry.compactionThresholdPct,
+          source: resolved.source === 'override' ? 'override' : 'catalog'
+        });
+      }
+    }
+
+    sendJson(res, 200, { models: [...seen.values()] });
     return;
   }
 

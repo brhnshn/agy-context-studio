@@ -191,6 +191,9 @@ var MODEL_LIMIT_CATALOG = [
 function normalizeModelId(modelId) {
   return modelId.trim().toLowerCase().replace(/^models\//, "");
 }
+function getBuiltinModelCatalog() {
+  return MODEL_LIMIT_CATALOG;
+}
 function resolveModelLimit(modelId, overrides) {
   if (!modelId || modelId.trim().length === 0) {
     return {
@@ -304,6 +307,52 @@ function sanitizeLabel(text, fallback) {
   }
   return `${singleLine.slice(0, 69)}...`;
 }
+function extractToolTarget(args) {
+  if (!args) {
+    return null;
+  }
+  for (const key of ["Path", "path", "file_path", "TargetFile"]) {
+    const val = args[key];
+    if (typeof val === "string" && val.trim().length > 0) {
+      const unquoted = val.trim().replace(/^["']+|["']+$/g, "");
+      const normalized = unquoted.replace(/\\/g, "/");
+      const base = normalized.split("/").filter(Boolean).pop();
+      if (base) {
+        const cleanBase = base.replace(/^["']+|["']+$/g, "");
+        return cleanBase.length > 28 ? `${cleanBase.slice(0, 25)}...` : cleanBase;
+      }
+    }
+  }
+  const cmd = args.CommandLine ?? args.command;
+  if (typeof cmd === "string" && cmd.trim().length > 0) {
+    const clean = cmd.replace(/\s+/g, " ").trim();
+    return clean.length > 28 ? `${clean.slice(0, 25)}...` : clean;
+  }
+  return null;
+}
+function summarizeToolCalls(toolCalls) {
+  const counts = /* @__PURE__ */ new Map();
+  const targetSet = /* @__PURE__ */ new Set();
+  for (const call of toolCalls) {
+    const name = typeof call?.name === "string" && call.name.trim() ? call.name.trim() : "tool_call";
+    counts.set(name, (counts.get(name) ?? 0) + 1);
+    if (targetSet.size < 2) {
+      const target = extractToolTarget(call?.args);
+      if (target) {
+        targetSet.add(target);
+      }
+    }
+  }
+  const toolCounts = [...counts.entries()].map(([name, count]) => ({
+    name,
+    count
+  }));
+  const primaryToolName = toolCounts[0]?.name ?? "tool_call";
+  const targets = [...targetSet];
+  const countsText = toolCounts.map((item) => item.count > 1 ? `${item.name} \xD7${item.count}` : item.name).join(", ");
+  const summaryText = targets.length > 0 ? `${countsText} (${targets.join(", ")})` : countsText;
+  return { primaryToolName, toolCounts, targets, summaryText };
+}
 function uriToFilePath(uri) {
   if (!uri.startsWith("file://")) {
     return void 0;
@@ -381,12 +430,15 @@ function processParsedStep(cursor, step) {
   const stepType = step.type ?? "";
   if (stepType === "USER_INPUT") {
     cursor.pendingToolName = void 0;
+    cursor.pendingToolCounts = void 0;
+    cursor.pendingTargets = void 0;
     cursor.pendingSubagentMeta = void 0;
     const bytes = utf8Bytes(step.content);
     if (bytes > 0) {
       state.steps.push({
         stepIndex,
         category: "user",
+        stepKind: "user",
         label: sanitizeLabel(step.content ?? "", `User input #${stepIndex}`),
         bytes,
         createdAt
@@ -400,6 +452,7 @@ function processParsedStep(cursor, step) {
       state.steps.push({
         stepIndex,
         category: "system",
+        stepKind: "system",
         label: `${stepType === "EPHEMERAL_MESSAGE" ? "Ephemeral" : "System"} #${stepIndex}`,
         bytes,
         createdAt
@@ -409,6 +462,8 @@ function processParsedStep(cursor, step) {
   }
   if (stepType === "PLANNER_RESPONSE") {
     cursor.pendingToolName = void 0;
+    cursor.pendingToolCounts = void 0;
+    cursor.pendingTargets = void 0;
     cursor.pendingSubagentMeta = void 0;
     if (typeof step.model === "string" && step.model.trim().length > 0) {
       state.model = step.model.trim();
@@ -449,6 +504,7 @@ function processParsedStep(cursor, step) {
       state.steps.push({
         stepIndex,
         category: "thinking",
+        stepKind: "thinking",
         label: `Thinking #${stepIndex}`,
         bytes: thinkingBytes,
         createdAt
@@ -459,15 +515,17 @@ function processParsedStep(cursor, step) {
       state.steps.push({
         stepIndex,
         category: "assistant",
+        stepKind: "assistant",
         label: sanitizeLabel(step.content ?? "", `Assistant reply #${stepIndex}`),
         bytes: contentBytes,
         createdAt
       });
     }
     if (Array.isArray(step.tool_calls) && step.tool_calls.length > 0) {
-      const toolNames = step.tool_calls.map((call) => typeof call?.name === "string" ? call.name.trim() : "").filter(Boolean);
-      const primaryToolName = toolNames[0] ?? "tool_call";
-      cursor.pendingToolName = toolNames.length > 1 ? toolNames.join(", ") : primaryToolName;
+      const summary = summarizeToolCalls(step.tool_calls);
+      cursor.pendingToolName = summary.summaryText;
+      cursor.pendingToolCounts = summary.toolCounts;
+      cursor.pendingTargets = summary.targets;
       const subagentCall = step.tool_calls.find((call) => call?.name === "invoke_subagent");
       if (subagentCall) {
         const args = subagentCall.args ?? {};
@@ -483,8 +541,11 @@ function processParsedStep(cursor, step) {
         state.steps.push({
           stepIndex,
           category: "tools",
-          label: `Call: ${cursor.pendingToolName}`,
-          toolName: primaryToolName,
+          stepKind: "tool_call",
+          label: summary.summaryText,
+          toolName: summary.primaryToolName,
+          toolCounts: summary.toolCounts,
+          targets: summary.targets,
           bytes: callBytes,
           createdAt
         });
@@ -495,13 +556,16 @@ function processParsedStep(cursor, step) {
   if (stepType === "GENERIC") {
     const content = typeof step.content === "string" ? step.content : "";
     const bytes = utf8Bytes(content);
-    const toolLabel = cursor.pendingToolName ? `Result: ${cursor.pendingToolName}` : `Tool output #${stepIndex}`;
+    const toolLabel = cursor.pendingToolName ? cursor.pendingToolName : `Tool output #${stepIndex}`;
     if (bytes > 0) {
       state.steps.push({
         stepIndex,
         category: "tools",
+        stepKind: "tool_result",
         label: toolLabel,
-        toolName: cursor.pendingToolName,
+        toolName: cursor.pendingToolCounts?.[0]?.name ?? cursor.pendingToolName,
+        toolCounts: cursor.pendingToolCounts,
+        targets: cursor.pendingTargets,
         bytes,
         createdAt
       });
@@ -672,8 +736,11 @@ function rankTopBloaters(steps, totalInputTokens, limit = 10) {
     return {
       stepIndex: step.stepIndex,
       category: step.category,
+      stepKind: step.stepKind,
       label: step.label,
       toolName: step.toolName,
+      toolCounts: step.toolCounts,
+      targets: step.targets,
       bytes: step.bytes,
       estimatedTokens: Math.round(safeTokens * ratio),
       sharePct: Number((ratio * 100).toFixed(1)),
@@ -1035,6 +1102,50 @@ async function handleSidecarRequest(req, res, ctx) {
   if (method === "GET" && pathname === "/api/conversations") {
     const conversations = await listConversationEntries(ctx.antigravityHome);
     sendJson(res, 200, { conversations });
+    return;
+  }
+  if (method === "GET" && pathname === "/api/models") {
+    const [config, entries] = await Promise.all([
+      readPluginConfig(ctx.pluginDataDir),
+      listConversationEntries(ctx.antigravityHome)
+    ]);
+    const seen = /* @__PURE__ */ new Map();
+    for (const entry of entries.slice(0, 8)) {
+      const parsed = await ctx.reader.readIncremental(entry.transcriptPath);
+      if (parsed?.model) {
+        const resolved = resolveModelLimit(parsed.model, config.modelOverrides);
+        if (!seen.has(parsed.model)) {
+          seen.set(parsed.model, {
+            id: parsed.model,
+            contextLimit: resolved.contextLimit,
+            compactionThresholdPct: resolved.compactionThresholdPct,
+            source: resolved.source === "override" ? "override" : "detected"
+          });
+        }
+      }
+    }
+    for (const [pattern, override] of Object.entries(config.modelOverrides)) {
+      if (!seen.has(pattern)) {
+        seen.set(pattern, {
+          id: pattern,
+          contextLimit: override.contextLimit,
+          compactionThresholdPct: override.compactionThresholdPct ?? 85,
+          source: "override"
+        });
+      }
+    }
+    for (const entry of getBuiltinModelCatalog()) {
+      if (!seen.has(entry.pattern)) {
+        const resolved = resolveModelLimit(entry.pattern, config.modelOverrides);
+        seen.set(entry.pattern, {
+          id: entry.pattern,
+          contextLimit: resolved.contextLimit ?? entry.contextLimit,
+          compactionThresholdPct: resolved.compactionThresholdPct ?? entry.compactionThresholdPct,
+          source: resolved.source === "override" ? "override" : "catalog"
+        });
+      }
+    }
+    sendJson(res, 200, { models: [...seen.values()] });
     return;
   }
   if (method === "GET" && pathname === "/api/state") {

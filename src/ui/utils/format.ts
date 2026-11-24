@@ -1,4 +1,5 @@
-import type { ContextSnapshot, LanguageCode } from '../../core/types.js';
+import type { BloaterItem, ContextSnapshot, LanguageCode } from '../../core/types.js';
+import type { TranslationDict } from '../i18n/en.js';
 
 export function formatTokens(value: number | null | undefined): string {
   if (typeof value !== 'number' || !Number.isFinite(value)) {
@@ -39,6 +40,51 @@ export function formatPercent(ratioOrPct: number | null | undefined, isRatio = f
   }
   const pct = isRatio ? ratioOrPct * 100 : ratioOrPct;
   return `${pct.toFixed(1)}%`;
+}
+
+export function formatShortTime(mtimeMs: number, lang: LanguageCode): string {
+  if (!Number.isFinite(mtimeMs) || mtimeMs <= 0) {
+    return '';
+  }
+  const date = new Date(mtimeMs);
+  const now = new Date();
+  const sameDay =
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate();
+
+  const locale = lang === 'tr' ? 'tr-TR' : 'en-US';
+  if (sameDay) {
+    return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+  }
+  return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
+}
+
+export function formatBloaterLabel(item: BloaterItem, t: TranslationDict): string {
+  const kindPrefix = item.stepKind ? t.breakdown.stepKinds[item.stepKind] : null;
+
+  if (item.toolCounts && item.toolCounts.length > 0) {
+    const countsText = item.toolCounts
+      .map((entry) => (entry.count > 1 ? `${entry.name} ×${entry.count}` : entry.name))
+      .join(', ');
+    const targetsText =
+      item.targets && item.targets.length > 0 ? ` (${item.targets.join(', ')})` : '';
+    return kindPrefix ? `${kindPrefix} · ${countsText}${targetsText}` : `${countsText}${targetsText}`;
+  }
+
+  if (item.stepKind === 'thinking') {
+    return `${t.breakdown.stepKinds.thinking} #${item.stepIndex}`;
+  }
+
+  if (item.stepKind === 'system') {
+    return `${t.breakdown.stepKinds.system} #${item.stepIndex}`;
+  }
+
+  if (item.stepKind === 'tool_result' && item.toolName) {
+    return `${t.breakdown.stepKinds.tool_result} · ${item.toolName}`;
+  }
+
+  return kindPrefix ? `${kindPrefix} · ${item.label}` : item.label;
 }
 
 export function buildMarkdownReport(snapshot: ContextSnapshot, lang: LanguageCode): string {

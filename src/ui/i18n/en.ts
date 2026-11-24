@@ -8,6 +8,7 @@ export const en = {
   },
   header: {
     refresh: 'Refresh',
+    sessionLabel: 'Active session',
     sessionPlaceholder: 'Latest session',
     liveConnected: 'Live',
     pausedHidden: 'Paused'
@@ -16,6 +17,8 @@ export const en = {
     title: 'Context Window',
     unknownModel: 'Unknown limit',
     compactionMarker: 'Compaction ~',
+    cached: 'cached',
+    uncached: 'uncached',
     turnCacheHit: 'Turn Cache Hit',
     sessionCacheHit: 'Session Cache Hit',
     outputTokens: 'Output (Turn)',
@@ -35,6 +38,14 @@ export const en = {
       assistant: 'Assistant',
       thinking: 'Thinking',
       tools: 'Tools',
+      system: 'System'
+    },
+    stepKinds: {
+      tool_call: 'Tool call',
+      tool_result: 'Tool output',
+      thinking: 'Thinking',
+      user: 'User',
+      assistant: 'Assistant',
       system: 'System'
     }
   },
@@ -74,8 +85,11 @@ export const en = {
     save: 'Save Settings',
     saved: 'Settings saved.',
     overridesTitle: 'Model Context Limit Overrides',
+    selectModel: 'Select model',
+    customModelOption: 'Custom model ID...',
     modelPattern: 'Model ID or prefix',
     contextLimit: 'Context limit (tokens)',
+    limitPlaceholder: 'Tokens (e.g. 200000)',
     addOverride: 'Add Override',
     remove: 'Remove',
     noOverrides: 'No custom overrides configured.',

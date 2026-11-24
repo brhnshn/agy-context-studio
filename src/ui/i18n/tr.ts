@@ -18,6 +18,7 @@ export const tr: {
   },
   header: {
     refresh: 'Yenile',
+    sessionLabel: 'Aktif oturum',
     sessionPlaceholder: 'Son oturum',
     liveConnected: 'Canlı',
     pausedHidden: 'Duraklatıldı'
@@ -26,6 +27,8 @@ export const tr: {
     title: 'Bağlam Penceresi',
     unknownModel: 'Limit bilinmiyor',
     compactionMarker: 'Sıkıştırma ~',
+    cached: 'önbellek',
+    uncached: 'yeni',
     turnCacheHit: 'Tur Önbellek İsabeti',
     sessionCacheHit: 'Oturum Önbellek İsabeti',
     outputTokens: 'Çıktı (Tur)',
@@ -45,6 +48,14 @@ export const tr: {
       assistant: 'Asistan',
       thinking: 'Düşünme',
       tools: 'Araçlar',
+      system: 'Sistem'
+    },
+    stepKinds: {
+      tool_call: 'Araç çağrısı',
+      tool_result: 'Araç çıktısı',
+      thinking: 'Düşünme',
+      user: 'Kullanıcı',
+      assistant: 'Asistan',
       system: 'Sistem'
     }
   },
@@ -84,8 +95,11 @@ export const tr: {
     save: 'Ayarları Kaydet',
     saved: 'Ayarlar kaydedildi.',
     overridesTitle: 'Model Bağlam Limiti Geçersiz Kılmaları',
+    selectModel: 'Model seçin',
+    customModelOption: 'Özel model kimliği...',
     modelPattern: 'Model kimliği veya ön eki',
     contextLimit: 'Bağlam limiti (token)',
+    limitPlaceholder: 'Token (ör. 200000)',
     addOverride: 'Ekle',
     remove: 'Sil',
     noOverrides: 'Özel model limiti tanımlanmadı.',

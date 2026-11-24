@@ -6,6 +6,7 @@ import type {
   ParsedTranscriptState,
   RawTranscriptStep,
   SubagentRef,
+  ToolCountSummary,
   TurnTelemetry
 } from './types.js';
 
@@ -15,6 +16,8 @@ interface CursorState {
   mtimeMs: number;
   state: ParsedTranscriptState;
   pendingToolName?: string;
+  pendingToolCounts?: ToolCountSummary[];
+  pendingTargets?: string[];
   pendingSubagentMeta?: {
     role?: string;
     typeName?: string;
@@ -78,6 +81,67 @@ function sanitizeLabel(text: string, fallback: string): string {
     return singleLine;
   }
   return `${singleLine.slice(0, 69)}...`;
+}
+
+function extractToolTarget(args: Record<string, unknown> | undefined): string | null {
+  if (!args) {
+    return null;
+  }
+  for (const key of ['Path', 'path', 'file_path', 'TargetFile']) {
+    const val = args[key];
+    if (typeof val === 'string' && val.trim().length > 0) {
+      const unquoted = val.trim().replace(/^["']+|["']+$/g, '');
+      const normalized = unquoted.replace(/\\/g, '/');
+      const base = normalized.split('/').filter(Boolean).pop();
+      if (base) {
+        const cleanBase = base.replace(/^["']+|["']+$/g, '');
+        return cleanBase.length > 28 ? `${cleanBase.slice(0, 25)}...` : cleanBase;
+      }
+    }
+  }
+  const cmd = args.CommandLine ?? args.command;
+  if (typeof cmd === 'string' && cmd.trim().length > 0) {
+    const clean = cmd.replace(/\s+/g, ' ').trim();
+    return clean.length > 28 ? `${clean.slice(0, 25)}...` : clean;
+  }
+  return null;
+}
+
+function summarizeToolCalls(
+  toolCalls: NonNullable<RawTranscriptStep['tool_calls']>
+): {
+  primaryToolName: string;
+  toolCounts: ToolCountSummary[];
+  targets: string[];
+  summaryText: string;
+} {
+  const counts = new Map<string, number>();
+  const targetSet = new Set<string>();
+
+  for (const call of toolCalls) {
+    const name = typeof call?.name === 'string' && call.name.trim() ? call.name.trim() : 'tool_call';
+    counts.set(name, (counts.get(name) ?? 0) + 1);
+    if (targetSet.size < 2) {
+      const target = extractToolTarget(call?.args);
+      if (target) {
+        targetSet.add(target);
+      }
+    }
+  }
+
+  const toolCounts: ToolCountSummary[] = [...counts.entries()].map(([name, count]) => ({
+    name,
+    count
+  }));
+  const primaryToolName = toolCounts[0]?.name ?? 'tool_call';
+  const targets = [...targetSet];
+
+  const countsText = toolCounts
+    .map((item) => (item.count > 1 ? `${item.name} ×${item.count}` : item.name))
+    .join(', ');
+  const summaryText = targets.length > 0 ? `${countsText} (${targets.join(', ')})` : countsText;
+
+  return { primaryToolName, toolCounts, targets, summaryText };
 }
 
 function uriToFilePath(uri: string): string | undefined {
@@ -178,12 +242,15 @@ function processParsedStep(cursor: CursorState, step: RawTranscriptStep): void {
 
   if (stepType === 'USER_INPUT') {
     cursor.pendingToolName = undefined;
+    cursor.pendingToolCounts = undefined;
+    cursor.pendingTargets = undefined;
     cursor.pendingSubagentMeta = undefined;
     const bytes = utf8Bytes(step.content);
     if (bytes > 0) {
       state.steps.push({
         stepIndex,
         category: 'user',
+        stepKind: 'user',
         label: sanitizeLabel(step.content ?? '', `User input #${stepIndex}`),
         bytes,
         createdAt
@@ -198,6 +265,7 @@ function processParsedStep(cursor: CursorState, step: RawTranscriptStep): void {
       state.steps.push({
         stepIndex,
         category: 'system',
+        stepKind: 'system',
         label: `${stepType === 'EPHEMERAL_MESSAGE' ? 'Ephemeral' : 'System'} #${stepIndex}`,
         bytes,
         createdAt
@@ -208,6 +276,8 @@ function processParsedStep(cursor: CursorState, step: RawTranscriptStep): void {
 
   if (stepType === 'PLANNER_RESPONSE') {
     cursor.pendingToolName = undefined;
+    cursor.pendingToolCounts = undefined;
+    cursor.pendingTargets = undefined;
     cursor.pendingSubagentMeta = undefined;
 
     if (typeof step.model === 'string' && step.model.trim().length > 0) {
@@ -257,6 +327,7 @@ function processParsedStep(cursor: CursorState, step: RawTranscriptStep): void {
       state.steps.push({
         stepIndex,
         category: 'thinking',
+        stepKind: 'thinking',
         label: `Thinking #${stepIndex}`,
         bytes: thinkingBytes,
         createdAt
@@ -268,6 +339,7 @@ function processParsedStep(cursor: CursorState, step: RawTranscriptStep): void {
       state.steps.push({
         stepIndex,
         category: 'assistant',
+        stepKind: 'assistant',
         label: sanitizeLabel(step.content ?? '', `Assistant reply #${stepIndex}`),
         bytes: contentBytes,
         createdAt
@@ -275,11 +347,10 @@ function processParsedStep(cursor: CursorState, step: RawTranscriptStep): void {
     }
 
     if (Array.isArray(step.tool_calls) && step.tool_calls.length > 0) {
-      const toolNames = step.tool_calls
-        .map((call) => (typeof call?.name === 'string' ? call.name.trim() : ''))
-        .filter(Boolean);
-      const primaryToolName = toolNames[0] ?? 'tool_call';
-      cursor.pendingToolName = toolNames.length > 1 ? toolNames.join(', ') : primaryToolName;
+      const summary = summarizeToolCalls(step.tool_calls);
+      cursor.pendingToolName = summary.summaryText;
+      cursor.pendingToolCounts = summary.toolCounts;
+      cursor.pendingTargets = summary.targets;
 
       const subagentCall = step.tool_calls.find((call) => call?.name === 'invoke_subagent');
       if (subagentCall) {
@@ -297,8 +368,11 @@ function processParsedStep(cursor: CursorState, step: RawTranscriptStep): void {
         state.steps.push({
           stepIndex,
           category: 'tools',
-          label: `Call: ${cursor.pendingToolName}`,
-          toolName: primaryToolName,
+          stepKind: 'tool_call',
+          label: summary.summaryText,
+          toolName: summary.primaryToolName,
+          toolCounts: summary.toolCounts,
+          targets: summary.targets,
           bytes: callBytes,
           createdAt
         });
@@ -310,14 +384,17 @@ function processParsedStep(cursor: CursorState, step: RawTranscriptStep): void {
   if (stepType === 'GENERIC') {
     const content = typeof step.content === 'string' ? step.content : '';
     const bytes = utf8Bytes(content);
-    const toolLabel = cursor.pendingToolName ? `Result: ${cursor.pendingToolName}` : `Tool output #${stepIndex}`;
+    const toolLabel = cursor.pendingToolName ? cursor.pendingToolName : `Tool output #${stepIndex}`;
 
     if (bytes > 0) {
       state.steps.push({
         stepIndex,
         category: 'tools',
+        stepKind: 'tool_result',
         label: toolLabel,
-        toolName: cursor.pendingToolName,
+        toolName: cursor.pendingToolCounts?.[0]?.name ?? cursor.pendingToolName,
+        toolCounts: cursor.pendingToolCounts,
+        targets: cursor.pendingTargets,
         bytes,
         createdAt
       });

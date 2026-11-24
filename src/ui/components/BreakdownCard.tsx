@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { CategoryKey, ContextSnapshot } from '../../core/types.js';
 import type { TranslationDict } from '../i18n/en.js';
-import { formatBytes, formatTokens } from '../utils/format.js';
+import { formatBloaterLabel, formatBytes, formatTokens } from '../utils/format.js';
 import { LayersIcon } from '../utils/icons.js';
 
 interface BreakdownCardProps {
@@ -85,31 +85,34 @@ export function BreakdownCard({ t, snapshot }: BreakdownCardProps) {
             {t.breakdown.bloatersTitle}
           </div>
           <div className="cs-list">
-            {visibleBloaters.slice(0, 6).map((item) => (
-              <div key={`${item.stepIndex}-${item.category}-${item.label}`} className="cs-list-row">
-                <div
-                  className="cs-list-bar"
-                  style={{
-                    width: `${Math.min(100, Math.max(4, item.sharePct))}%`,
-                    backgroundColor: CATEGORY_COLORS[item.category]
-                  }}
-                />
-                <div className="cs-list-main">
-                  <span
-                    className="cs-dot"
-                    style={{ backgroundColor: CATEGORY_COLORS[item.category] }}
+            {visibleBloaters.slice(0, 6).map((item) => {
+              const displayLabel = formatBloaterLabel(item, t);
+              return (
+                <div key={`${item.stepIndex}-${item.category}-${item.label}`} className="cs-list-row">
+                  <div
+                    className="cs-list-bar"
+                    style={{
+                      width: `${Math.min(100, Math.max(4, item.sharePct))}%`,
+                      backgroundColor: CATEGORY_COLORS[item.category]
+                    }}
                   />
-                  <span className="cs-list-label" title={item.label}>
-                    {item.label}
-                  </span>
+                  <div className="cs-list-main">
+                    <span
+                      className="cs-dot"
+                      style={{ backgroundColor: CATEGORY_COLORS[item.category] }}
+                    />
+                    <span className="cs-list-label" title={displayLabel}>
+                      {displayLabel}
+                    </span>
+                  </div>
+                  <div className="cs-list-meta">
+                    <span>~{formatTokens(item.estimatedTokens)}</span>
+                    <span>{formatBytes(item.bytes)}</span>
+                    <span>{item.sharePct.toFixed(1)}%</span>
+                  </div>
                 </div>
-                <div className="cs-list-meta">
-                  <span>~{formatTokens(item.estimatedTokens)}</span>
-                  <span>{formatBytes(item.bytes)}</span>
-                  <span>{item.sharePct.toFixed(1)}%</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </>
       )}

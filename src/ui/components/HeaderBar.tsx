@@ -1,6 +1,7 @@
 import type { LanguageCode } from '../../core/types.js';
 import type { TranslationDict } from '../i18n/en.js';
 import type { ConversationListItem } from '../services/apiClient.js';
+import { formatShortTime } from '../utils/format.js';
 import { BrandLogoIcon, RefreshIcon } from '../utils/icons.js';
 import { CustomSelect } from './CustomSelect.js';
 
@@ -29,7 +30,8 @@ export function HeaderBar({
 }: HeaderBarProps) {
   const conversationOptions = conversations.map((item) => ({
     value: item.conversationId,
-    label: item.conversationId.slice(0, 8)
+    label: item.conversationId.slice(0, 8),
+    meta: formatShortTime(item.mtimeMs, language)
   }));
 
   return (
@@ -44,14 +46,16 @@ export function HeaderBar({
       </div>
       <div className="cs-header-controls">
         {conversationOptions.length > 0 && (
-          <CustomSelect
-            ariaLabel="Conversation"
-            value={selectedConversationId}
-            options={conversationOptions}
-            onChange={onSelectConversation}
-            mono
-            align="right"
-          />
+          <div title={t.header.sessionLabel}>
+            <CustomSelect
+              ariaLabel={t.header.sessionLabel}
+              value={selectedConversationId}
+              options={conversationOptions}
+              onChange={onSelectConversation}
+              mono
+              align="right"
+            />
+          </div>
         )}
         <div className="cs-lang-switch" role="group" aria-label={t.settings.language}>
           <button

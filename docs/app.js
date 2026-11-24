@@ -1,20 +1,14 @@
 const COPY = {
   en: {
     'nav.preview': 'Preview',
-    'nav.modules': 'Modules',
-    'nav.architecture': 'Architecture',
-    'hero.eyebrow': 'Open-Source Antigravity Plugin · Zero Token Overhead',
-    'hero.titleBright': 'Context visibility',
-    'hero.titleMuted': 'engineered for Antigravity sessions.',
-    'hero.lead':
-      'Track exact token fill, prompt cache efficiency, context bloaters, and subagent usage locally without spending a single model token.',
-    'hero.cta': 'Explore on GitHub',
-    'hero.copy': 'Copy',
-    'hero.copied': 'Copied',
-    'kpi.fillLabel': 'Context Fill',
-    'kpi.cacheLabel': 'Cache Hit',
-    'kpi.overheadLabel': 'Monitor Overhead',
-    'kpi.historyLabel': '7-Day Volume',
+    'nav.features': 'Features',
+    'nav.install': 'Install',
+    'hero.eyebrow': 'Google Antigravity Plugin · Zero Token Overhead',
+    'hero.title': 'Context visibility for Antigravity sessions.',
+    'hero.subtitle':
+      'Monitor exact token fill, prompt cache efficiency, top context bloaters, and subagent usage locally without spending a single model token.',
+    'hero.ctaGithub': 'View on GitHub',
+    'hero.ctaInstall': 'Quick Install',
     'showcase.tabEn': 'Overview (EN)',
     'showcase.tabTr': 'Overview (TR)',
     'showcase.tabHistory': '7-Day History',
@@ -27,48 +21,41 @@ const COPY = {
       'Local 7-day token volume and prompt cache hit savings aggregated across Antigravity sessions.',
     'showcase.captionSettings':
       'Configurable PostInvocation warning thresholds, EN/TR switcher, real detected model limits, and opt-in MCP App guide.',
-    'arch.titleBright': 'Local-first ingestion',
-    'arch.titleMuted': 'with modular output layers.',
-    'arch.leftKicker': 'DISK SOURCE',
-    'arch.leftSub': 'Byte-offset incremental',
-    'arch.rightKicker': 'SURFACES',
-    'arch.rightSub': 'Zero background cost',
-    'modules.m1Tag': 'OPTION 01 · DEFAULT ON',
-    'modules.m1Title': 'Live Sidecar Web UI',
-    'modules.m1Desc':
-      'Watches transcripts incrementally via fs.watch and streams exact token counts, cache hit rates, subagents, and 7-day history over SSE.',
-    'modules.m2Tag': 'OPTION 02 · TOGGLEABLE',
-    'modules.m2Title': 'PostInvocation Hook',
-    'modules.m2Desc':
-      'Evaluates 70% warning and 85% critical thresholds after each turn and emits user-only markdown cards with empty systemMessage.',
-    'modules.m3Tag': 'OPTION 03 · 3A + OPT-IN 3B',
-    'modules.m3Title': 'Context Manager',
-    'modules.m3Desc':
+    'features.title': 'Three modular layers, zero background cost.',
+    'features.subtitle':
+      'Built directly on top of local transcript.jsonl logs with zero external runtime dependencies.',
+    'features.f1Tag': 'Default ON · 0 Tokens',
+    'features.f1Title': 'Live Sidecar Web UI',
+    'features.f1Desc':
+      'Incremental byte-offset reader streaming exact context fill, prompt cache hit rates, subagent summaries, and 7-day history over SSE.',
+    'features.f2Tag': 'Toggleable · 0 Model Tokens',
+    'features.f2Title': 'PostInvocation Hook',
+    'features.f2Desc':
+      'Checks configurable 70% warning and 85% critical thresholds after each turn and emits user-only markdown cards with empty systemMessage.',
+    'features.f3Tag': 'Sidecar + Opt-in MCP',
+    'features.f3Title': 'Interactive Context Manager',
+    'features.f3Desc':
       'Top toolbar triggers Smart Handoff, Compact Checkpoint, and Markdown Report export. Optional MCP App stays off by default.',
-    'metrics.u1': 'tok',
-    'metrics.l1': 'Background monitoring token overhead',
-    'metrics.u2': 'layers',
-    'metrics.l2': 'Sidecar UI, PostInvocation hook, opt-in MCP',
-    'metrics.u3': 'langs',
-    'metrics.l3': 'Built-in English and Turkish UI & alerts',
-    'metrics.l4': 'Local-first ingestion with zero network calls'
+    'specs.s1': 'Monitoring token overhead',
+    'specs.s2': 'Local-first disk ingestion',
+    'specs.s3': 'Built-in UI & hook alerts',
+    'specs.s4': 'Zero runtime dependencies',
+    'install.title': 'Quick Install',
+    'install.subtitle':
+      'Requires Node.js 22+. Links cleanly into ~/.gemini/config/plugins/agy-context-studio.',
+    'install.copy': 'Copy',
+    'install.copied': 'Copied'
   },
   tr: {
     'nav.preview': 'Önizleme',
-    'nav.modules': 'Modüller',
-    'nav.architecture': 'Mimari',
-    'hero.eyebrow': 'Açık Kaynak Antigravity Eklentisi · Sıfır Token Maliyeti',
-    'hero.titleBright': 'Bağlam görünürlüğü',
-    'hero.titleMuted': 'Antigravity oturumları için tasarlandı.',
-    'hero.lead':
+    'nav.features': 'Özellikler',
+    'nav.install': 'Kurulum',
+    'hero.eyebrow': 'Google Antigravity Eklentisi · Sıfır Token Maliyeti',
+    'hero.title': 'Antigravity oturumları için bağlam görünürlüğü.',
+    'hero.subtitle':
       'Gerçek token doluluğunu, Prompt Cache verimliliğini, bağlamı şişiren adımları ve alt ajan kullanımını tek bir model tokenı harcamadan yerelde izleyin.',
-    'hero.cta': 'GitHub’da İncele',
-    'hero.copy': 'Kopyala',
-    'hero.copied': 'Kopyalandı',
-    'kpi.fillLabel': 'Bağlam Doluluğu',
-    'kpi.cacheLabel': 'Önbellek İsabeti',
-    'kpi.overheadLabel': 'İzleme Maliyeti',
-    'kpi.historyLabel': '7 Günlük Hacim',
+    'hero.ctaGithub': 'GitHub’da İncele',
+    'hero.ctaInstall': 'Hızlı Kurulum',
     'showcase.tabEn': 'Genel Bakış (EN)',
     'showcase.tabTr': 'Genel Bakış (TR)',
     'showcase.tabHistory': '7 Günlük Geçmiş',
@@ -81,31 +68,30 @@ const COPY = {
       'Yerel Antigravity oturumlarından derlenen 7 günlük token hacmi ve önbellek tasarruf özeti.',
     'showcase.captionSettings':
       'Ayarlanabilir PostInvocation eşikleri, EN/TR dil seçici, oturumlardan algılanan gerçek model limitleri ve isteğe bağlı MCP App rehberi.',
-    'arch.titleBright': 'Yerel öncelikli okuma',
-    'arch.titleMuted': 've modüler çıktı katmanları.',
-    'arch.leftKicker': 'DİSK KAYNAĞI',
-    'arch.leftSub': 'Bayt konumuna göre artımlı',
-    'arch.rightKicker': 'ARAYÜZLER',
-    'arch.rightSub': 'Sıfır arka plan maliyeti',
-    'modules.m1Tag': 'SEÇENEK 01 · VARSAYILAN AÇIK',
-    'modules.m1Title': 'Canlı Sidecar Web Arayüzü',
-    'modules.m1Desc':
-      'transcript.jsonl dosyasını fs.watch ile artımlı izler; gerçek token doluluğunu, önbellek isabetini, alt ajanları ve 7 günlük geçmişi SSE ile aktarır.',
-    'modules.m2Tag': 'SEÇENEK 02 · AÇ / KAPA',
-    'modules.m2Title': 'PostInvocation Kancası',
-    'modules.m2Desc':
+    'features.title': 'Üç modüler katman, sıfır arka plan maliyeti.',
+    'features.subtitle':
+      'Harici çalışma zamanı bağımlılığı olmadan doğrudan yerel transcript.jsonl kayıtları üzerinde çalışır.',
+    'features.f1Tag': 'Varsayılan AÇIK · 0 Token',
+    'features.f1Title': 'Canlı Sidecar Web Arayüzü',
+    'features.f1Desc':
+      'Bayt konumuna göre artımlı okuma ile gerçek doluluğu, önbellek isabetini, alt ajan özetlerini ve 7 günlük geçmişi SSE ile aktarır.',
+    'features.f2Tag': 'Aç / Kapa · 0 Model Token',
+    'features.f2Title': 'PostInvocation Kancası',
+    'features.f2Desc':
       'Her tur sonrası %70 uyarı ve %85 kritik eşikleri denetler; boş systemMessage ile model bağlamına sıfır yük ekleyerek kullanıcıya kart gösterir.',
-    'modules.m3Tag': 'SEÇENEK 03 · 3A + İSTEĞE BAĞLI 3B',
-    'modules.m3Title': 'Bağlam Yöneticisi',
-    'modules.m3Desc':
-      'Üst araç çubuğu Akıllı Devir, Özet/Sıkıştır ve Markdown Raporu başlatır. İsteğe bağlı MCP App modülü varsayılan olarak kapalıdır.',
-    'metrics.u1': 'tok',
-    'metrics.l1': 'Arka plan izleme token maliyeti',
-    'metrics.u2': 'katman',
-    'metrics.l2': 'Sidecar UI, PostInvocation kancası, isteğe bağlı MCP',
-    'metrics.u3': 'dil',
-    'metrics.l3': 'Dahili İngilizce ve Türkçe arayüz ve uyarılar',
-    'metrics.l4': 'Dış ağ çağrısı olmayan tamamen yerel okuma'
+    'features.f3Tag': 'Sidecar + İsteğe Bağlı MCP',
+    'features.f3Title': 'Etkileşimli Bağlam Yöneticisi',
+    'features.f3Desc':
+      'Üst araç çubuğu Akıllı Devir, Özet/Sıkıştır ve Markdown Raporu başlatır. İsteğe bağlı MCP App varsayılan olarak kapalıdır.',
+    'specs.s1': 'İzleme token maliyeti',
+    'specs.s2': 'Yerel öncelikli disk okuma',
+    'specs.s3': 'Dahili arayüz ve uyarılar',
+    'specs.s4': 'Sıfır harici bağımlılık',
+    'install.title': 'Hızlı Kurulum',
+    'install.subtitle':
+      'Node.js 22+ gerektirir. ~/.gemini/config/plugins/agy-context-studio dizinine temizce bağlanır.',
+    'install.copy': 'Kopyala',
+    'install.copied': 'Kopyalandı'
   }
 };
 
@@ -175,37 +161,14 @@ if (copyBtn && installCmd) {
   copyBtn.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(installCmd.textContent || '');
-      copyBtn.textContent = COPY[currentLang]['hero.copied'];
+      copyBtn.textContent = COPY[currentLang]['install.copied'];
       setTimeout(() => {
-        copyBtn.textContent = COPY[currentLang]['hero.copy'];
+        copyBtn.textContent = COPY[currentLang]['install.copy'];
       }, 2000);
     } catch {
       // Ignore clipboard permission denials
     }
   });
-}
-
-// Scroll-reveal for lower telemetry strip and diagram
-const revealNodes = document.querySelectorAll('[data-reveal]');
-if ('IntersectionObserver' in window && revealNodes.length > 0) {
-  const observer = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible');
-          observer.unobserve(entry.target);
-        }
-      }
-    },
-    { threshold: 0.12 }
-  );
-  for (const node of revealNodes) {
-    observer.observe(node);
-  }
-} else {
-  for (const node of revealNodes) {
-    node.classList.add('is-visible');
-  }
 }
 
 applyTranslations();

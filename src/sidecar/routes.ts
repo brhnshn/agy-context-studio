@@ -4,7 +4,6 @@ import path from 'node:path';
 import {
   aggregateUsageHistory,
   buildContextSnapshot,
-  getBuiltinModelCatalog,
   type IncrementalTranscriptReader,
   listConversationEntries,
   type ModelOptionItem,
@@ -175,8 +174,8 @@ export async function handleSidecarRequest(
 
     const seen = new Map<string, ModelOptionItem>();
 
-    // 1. Models detected in the 8 most recent sessions
-    for (const entry of entries.slice(0, 8)) {
+    // 1. Models actually detected in the 30 most recent Antigravity sessions
+    for (const entry of entries.slice(0, 30)) {
       const parsed = await ctx.reader.readIncremental(entry.transcriptPath);
       if (parsed?.model) {
         const resolved = resolveModelLimit(parsed.model, config.modelOverrides);
@@ -191,7 +190,7 @@ export async function handleSidecarRequest(
       }
     }
 
-    // 2. Configured overrides
+    // 2. User-configured overrides
     for (const [pattern, override] of Object.entries(config.modelOverrides)) {
       if (!seen.has(pattern)) {
         seen.set(pattern, {
@@ -199,19 +198,6 @@ export async function handleSidecarRequest(
           contextLimit: override.contextLimit,
           compactionThresholdPct: override.compactionThresholdPct ?? 85,
           source: 'override'
-        });
-      }
-    }
-
-    // 3. Built-in model catalog entries
-    for (const entry of getBuiltinModelCatalog()) {
-      if (!seen.has(entry.pattern)) {
-        const resolved = resolveModelLimit(entry.pattern, config.modelOverrides);
-        seen.set(entry.pattern, {
-          id: entry.pattern,
-          contextLimit: resolved.contextLimit ?? entry.contextLimit,
-          compactionThresholdPct: resolved.compactionThresholdPct ?? entry.compactionThresholdPct,
-          source: resolved.source === 'override' ? 'override' : 'catalog'
         });
       }
     }

@@ -191,9 +191,6 @@ var MODEL_LIMIT_CATALOG = [
 function normalizeModelId(modelId) {
   return modelId.trim().toLowerCase().replace(/^models\//, "");
 }
-function getBuiltinModelCatalog() {
-  return MODEL_LIMIT_CATALOG;
-}
 function resolveModelLimit(modelId, overrides) {
   if (!modelId || modelId.trim().length === 0) {
     return {
@@ -1110,7 +1107,7 @@ async function handleSidecarRequest(req, res, ctx) {
       listConversationEntries(ctx.antigravityHome)
     ]);
     const seen = /* @__PURE__ */ new Map();
-    for (const entry of entries.slice(0, 8)) {
+    for (const entry of entries.slice(0, 30)) {
       const parsed = await ctx.reader.readIncremental(entry.transcriptPath);
       if (parsed?.model) {
         const resolved = resolveModelLimit(parsed.model, config.modelOverrides);
@@ -1131,17 +1128,6 @@ async function handleSidecarRequest(req, res, ctx) {
           contextLimit: override.contextLimit,
           compactionThresholdPct: override.compactionThresholdPct ?? 85,
           source: "override"
-        });
-      }
-    }
-    for (const entry of getBuiltinModelCatalog()) {
-      if (!seen.has(entry.pattern)) {
-        const resolved = resolveModelLimit(entry.pattern, config.modelOverrides);
-        seen.set(entry.pattern, {
-          id: entry.pattern,
-          contextLimit: resolved.contextLimit ?? entry.contextLimit,
-          compactionThresholdPct: resolved.compactionThresholdPct ?? entry.compactionThresholdPct,
-          source: resolved.source === "override" ? "override" : "catalog"
         });
       }
     }

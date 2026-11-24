@@ -80,7 +80,7 @@ test('Sidecar server serves health, conversations, state, history, settings, and
     models: Array<{ id: string; contextLimit: number | null; source: string }>;
   };
   assert.ok(modelsJson.models.some((m) => m.id === 'gemini-4-neon-medium' && m.source === 'detected'));
-  assert.ok(modelsJson.models.some((m) => m.id === 'claude-sonnet-4'));
+  assert.equal(modelsJson.models.some((m) => m.id === 'gpt-4o'), false);
 
   const stateRes = await fetch(`${baseUrl}/api/state?conversationId=${convId}`);
   const stateJson = (await stateRes.json()) as { totalInputTokens: number; usagePct: number };

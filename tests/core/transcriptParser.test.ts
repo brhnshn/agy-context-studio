@@ -210,3 +210,38 @@ test('IncrementalTranscriptReader detects compactions and invoke_subagent refere
   assert.equal(state.subagentRefs[0]?.role, 'Codebase Researcher');
   assert.equal(state.subagentRefs[0]?.typeName, 'research');
 });
+
+test('IncrementalTranscriptReader ignores conversationId snippets inside non-subagent tool outputs', async (t) => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'agy-ctx-nosub-'));
+  t.after(async () => {
+    await fs.rm(dir, { recursive: true, force: true });
+  });
+
+  const filePath = path.join(dir, 'transcript.jsonl');
+  await fs.writeFile(
+    filePath,
+    jsonl([
+      {
+        step_index: 0,
+        type: 'PLANNER_RESPONSE',
+        created_at: '2026-11-24T20:00:00Z',
+        model: 'gemini-4-hydrogen-high',
+        input_tokens: 10000,
+        cache_read_tokens: 0,
+        output_tokens: 100,
+        tool_calls: [{ name: 'read_file', args: { Path: 'docs/hooks.md' } }]
+      },
+      {
+        step_index: 1,
+        type: 'GENERIC',
+        created_at: '2026-11-24T20:00:01Z',
+        content: 'Example payload:\n{"conversationId": "ec33ebf9-0cba-4100-8142-c61503f6c587"}'
+      }
+    ]),
+    'utf8'
+  );
+
+  const state = await parseTranscriptFile(filePath);
+  assert.ok(state);
+  assert.equal(state.subagentRefs.length, 0);
+});

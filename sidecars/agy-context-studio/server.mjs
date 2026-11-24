@@ -314,8 +314,11 @@ function uriToFilePath(uri) {
     return void 0;
   }
 }
-function extractSubagentFromContent(content) {
-  if (!content.includes('"conversationId"') && !content.includes("Created the following subagent")) {
+function extractSubagentFromContent(content, isInvokeSubagentContext) {
+  if (!isInvokeSubagentContext && !content.includes("Created the following subagent")) {
+    return null;
+  }
+  if (!content.includes('"conversationId"')) {
     return null;
   }
   const startIdx = content.indexOf("{");
@@ -503,7 +506,7 @@ function processParsedStep(cursor, step) {
         createdAt
       });
     }
-    const extracted = extractSubagentFromContent(content);
+    const extracted = extractSubagentFromContent(content, Boolean(cursor.pendingSubagentMeta));
     if (extracted && !cursor.seenSubagentIds.has(extracted.conversationId)) {
       cursor.seenSubagentIds.add(extracted.conversationId);
       const ref = {

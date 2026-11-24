@@ -6,9 +6,10 @@ import { HistoryIcon } from '../utils/icons.js';
 interface HistoryTabProps {
   t: TranslationDict;
   history: UsageHistory | null;
+  loading?: boolean;
 }
 
-export function HistoryTab({ t, history }: HistoryTabProps) {
+export function HistoryTab({ t, history, loading = false }: HistoryTabProps) {
   const daily = history?.daily ?? [];
   const maxDayTokens = daily.reduce((max, item) => Math.max(max, item.totalInputTokens), 0);
 
@@ -21,7 +22,9 @@ export function HistoryTab({ t, history }: HistoryTabProps) {
         </span>
       </div>
 
-      {!history || history.totals.turns === 0 ? (
+      {loading ? (
+        <div className="cs-empty">{t.history.loading}</div>
+      ) : !history || history.totals.turns === 0 ? (
         <div className="cs-empty">{t.history.empty}</div>
       ) : (
         <>

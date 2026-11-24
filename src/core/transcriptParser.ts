@@ -91,11 +91,17 @@ function uriToFilePath(uri: string): string | undefined {
   }
 }
 
-function extractSubagentFromContent(content: string): {
+function extractSubagentFromContent(
+  content: string,
+  isInvokeSubagentContext: boolean
+): {
   conversationId: string;
   transcriptPath?: string;
 } | null {
-  if (!content.includes('"conversationId"') && !content.includes('Created the following subagent')) {
+  if (!isInvokeSubagentContext && !content.includes('Created the following subagent')) {
+    return null;
+  }
+  if (!content.includes('"conversationId"')) {
     return null;
   }
 
@@ -317,7 +323,7 @@ function processParsedStep(cursor: CursorState, step: RawTranscriptStep): void {
       });
     }
 
-    const extracted = extractSubagentFromContent(content);
+    const extracted = extractSubagentFromContent(content, Boolean(cursor.pendingSubagentMeta));
     if (extracted && !cursor.seenSubagentIds.has(extracted.conversationId)) {
       cursor.seenSubagentIds.add(extracted.conversationId);
       const ref: SubagentRef = {

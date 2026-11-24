@@ -36,6 +36,7 @@ export function App() {
   const [selectedConvId, setSelectedConvId] = useState<string>(() => getHostConversationId() ?? '');
   const [snapshot, setSnapshot] = useState<ContextSnapshot | null>(null);
   const [history, setHistory] = useState<UsageHistory | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [connected, setConnected] = useState(false);
   const [isHidden, setIsHidden] = useState(() => document.visibilityState === 'hidden');
 
@@ -86,11 +87,26 @@ export function App() {
   }, [selectedConvId]);
 
   useEffect(() => {
-    if (tab === 'history') {
-      void fetchHistory(7)
-        .then((res) => setHistory(res))
-        .catch(() => undefined);
+    if (tab !== 'history') {
+      return;
     }
+    let cancelled = false;
+    setHistoryLoading(true);
+    void fetchHistory(7)
+      .then((res) => {
+        if (!cancelled) {
+          setHistory(res);
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) {
+          setHistoryLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [tab]);
 
   const handleSaveConfig = async (partial: Partial<PluginConfig>) => {
@@ -169,7 +185,7 @@ export function App() {
         <SubagentsTab t={t} subagents={snapshot?.subagents ?? []} />
       )}
 
-      {tab === 'history' && <HistoryTab t={t} history={history} />}
+      {tab === 'history' && <HistoryTab t={t} history={history} loading={historyLoading} />}
 
       {tab === 'settings' && (
         <SettingsTab t={t} config={config} onSaveConfig={handleSaveConfig} />

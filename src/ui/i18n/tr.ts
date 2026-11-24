@@ -72,6 +72,7 @@ export const tr: {
     totalInput: 'Toplam Girdi',
     cacheSavings: 'Önbellek İsabeti',
     date: 'Tarih',
+    loading: '7 günlük geçmiş yükleniyor...',
     empty: 'Seçilen aralıkta kullanım geçmişi yok.'
   },
   settings: {

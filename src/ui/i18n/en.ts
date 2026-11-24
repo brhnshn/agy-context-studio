@@ -62,6 +62,7 @@ export const en = {
     totalInput: 'Total Input',
     cacheSavings: 'Cache Hit',
     date: 'Date',
+    loading: 'Loading 7-day history...',
     empty: 'No usage history in the selected window.'
   },
   settings: {

@@ -8,6 +8,13 @@
   --border-strong: rgba(11, 17, 27, 0.2);
   --accent: #0369a1;
   --accent-hover: #075985;
+  --bg-raised: #ffffff;
+  --bg-header: rgba(247, 248, 250, 0.9);
+  --hero-top: #eef2f7;
+  --cta-text: #ffffff;
+  --shadow-color: rgba(11, 17, 27, 0.14);
+  --shadow-soft: rgba(11, 17, 27, 0.08);
+  --install-bg: #0b111b;
 
   /* Strictly 3 body font sizes below the hero */
   --text-heading: 1.75rem;
@@ -17,6 +24,27 @@
   --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg-page: #0b0f16;
+  --bg-surface: #151b25;
+  --bg-ink: #e6edf6;
+  --text-primary: #e6edf6;
+  --text-muted: #9aa7ba;
+  --border-hairline: rgba(230, 237, 246, 0.1);
+  --border-strong: rgba(230, 237, 246, 0.18);
+  --accent: #38bdf8;
+  --accent-hover: #7dd3fc;
+  --bg-raised: #222b38;
+  --bg-header: rgba(11, 15, 22, 0.88);
+  --hero-top: #121925;
+  --cta-text: #0b111b;
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  --shadow-soft: rgba(0, 0, 0, 0.3);
+  --install-bg: #111826;
+  color-scheme: dark;
 }
 
 * {
@@ -55,7 +83,7 @@ body {
 }
 
 .site-header.is-scrolled {
-  background: rgba(247, 248, 250, 0.9);
+  background: var(--bg-header);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom-color: var(--border-hairline);
@@ -120,14 +148,48 @@ body {
 }
 
 .lang-option.is-active {
-  background: #ffffff;
+  background: var(--bg-raised);
   color: var(--text-primary);
-  box-shadow: 0 1px 2px rgba(11, 17, 27, 0.08);
+  box-shadow: 0 1px 2px var(--shadow-soft);
+}
+
+.header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid var(--border-hairline);
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 160ms var(--ease-out), background-color 160ms var(--ease-out);
+}
+
+.theme-toggle:hover {
+  color: var(--text-primary);
+}
+
+.theme-toggle .icon-sun,
+:root[data-theme="dark"] .theme-toggle .icon-moon {
+  display: none;
+}
+
+:root[data-theme="dark"] .theme-toggle .icon-sun {
+  display: block;
 }
 
 /* Hero bleeding from top edge */
 .hero-stage {
-  background: linear-gradient(180deg, #eef2f7 0%, var(--bg-page) 46%);
+  background: linear-gradient(180deg, var(--hero-top) 0%, var(--bg-page) 46%);
   padding-bottom: 84px;
 }
 
@@ -164,7 +226,7 @@ body {
   padding: 12px 22px;
   border-radius: 8px;
   background: var(--bg-ink);
-  color: #ffffff;
+  color: var(--cta-text);
   text-decoration: none;
   font-size: var(--text-body);
   font-weight: 600;
@@ -173,6 +235,7 @@ body {
 
 .cta-primary:hover {
   background: var(--accent);
+  color: #ffffff;
   transform: translateY(-1px);
 }
 
@@ -219,10 +282,10 @@ body {
 }
 
 .seg-tab.is-active {
-  background: #ffffff;
+  background: var(--bg-raised);
   color: var(--text-primary);
   font-weight: 600;
-  box-shadow: 0 1px 3px rgba(11, 17, 27, 0.08);
+  box-shadow: 0 1px 3px var(--shadow-soft);
 }
 
 .stage-figure {
@@ -239,7 +302,7 @@ body {
   object-fit: cover;
   border-radius: 14px;
   border: 1px solid var(--border-strong);
-  box-shadow: 0 24px 60px rgba(11, 17, 27, 0.14);
+  box-shadow: 0 24px 60px var(--shadow-color);
 }
 
 .stage-figure figcaption {
@@ -312,7 +375,8 @@ body {
 }
 
 .install-panel {
-  background: var(--bg-ink);
+  background: var(--install-bg);
+  border: 1px solid var(--border-hairline);
   color: #f4f6f9;
   border-radius: 16px;
   padding: 40px;
@@ -466,6 +530,7 @@ button:focus-visible {
   .nav-links a,
   .lang-option,
   .seg-tab,
+  .theme-toggle,
   .terminal-copy {
     transition: none;
   }

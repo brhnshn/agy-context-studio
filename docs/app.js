@@ -36,7 +36,8 @@ const COPY = {
       'Requires Node.js 22 or newer. The link script connects the built plugin into your Antigravity plugins folder without modifying global config.json.',
     'install.terminalLabel': 'Terminal',
     'install.copy': 'Copy commands',
-    'install.copied': 'Copied'
+    'install.copied': 'Copied',
+    'theme.toggle': 'Toggle dark theme'
   },
   tr: {
     'nav.preview': 'Önizleme',
@@ -75,7 +76,8 @@ const COPY = {
       'Node.js 22 veya üzeri gerektirir. Bağlama betiği derlenmiş eklentiyi genel config.json dosyasına dokunmadan Antigravity eklenti klasörüne ekler.',
     'install.terminalLabel': 'Terminal',
     'install.copy': 'Komutları kopyala',
-    'install.copied': 'Kopyalandı'
+    'install.copied': 'Kopyalandı',
+    'theme.toggle': 'Koyu temayı aç/kapat'
   }
 };
 
@@ -98,6 +100,11 @@ function applyTranslations() {
     if (key && dict[key]) {
       el.textContent = dict[key];
     }
+  }
+
+  const themeBtn = document.getElementById('theme-toggle');
+  if (themeBtn && dict['theme.toggle']) {
+    themeBtn.setAttribute('aria-label', dict['theme.toggle']);
   }
 
   const captionEl = document.getElementById('showcase-caption');
@@ -153,6 +160,28 @@ if (copyBtn && installCmd) {
       }, 2000);
     } catch {
       // Ignore clipboard permission denials
+    }
+  });
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  const btn = document.getElementById('theme-toggle');
+  if (btn) {
+    btn.setAttribute('aria-pressed', String(theme === 'dark'));
+  }
+}
+
+const themeToggle = document.getElementById('theme-toggle');
+if (themeToggle) {
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
+  themeToggle.addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try {
+      localStorage.setItem('theme', next);
+    } catch {
+      // Ignore storage failures (private mode)
     }
   });
 }
